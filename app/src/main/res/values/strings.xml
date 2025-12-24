@@ -1,0 +1,11 @@
+<resources>
+    <string name="cat_general">All</string>
+    <string name="app_name">Observer</string>
+    <string name="cat_business">Business</string>
+    <string name="cat_entertainment">Entertainment</string>
+    <string name="cat_health">Health</string>
+    <string name="cat_science">Science</string>
+    <string name="cat_sports">Sports</string>
+    <string name="cat_technology">Technology</string>
+    <string name="no_articles">No articles found</string>
+</resources>

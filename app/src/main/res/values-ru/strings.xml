@@ -1,0 +1,11 @@
+<resources>
+    <string name="cat_general">Все</string>
+    <string name="app_name">Observer</string>
+    <string name="cat_business">Бизнесс</string>
+    <string name="cat_entertainment">Развлечения</string>
+    <string name="cat_health">Здоровье</string>
+    <string name="cat_science">Наука</string>
+    <string name="cat_sports">Спорт</string>
+    <string name="cat_technology">Технологии</string>
+    <string name="no_articles">Статьи не найдены</string>
+</resources>
