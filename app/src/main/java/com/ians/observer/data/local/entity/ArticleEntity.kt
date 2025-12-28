@@ -10,6 +10,9 @@ data class ArticleEntity(
     @ColumnInfo(name = "url")
     val url: String,
 
+    @ColumnInfo(name = "page")
+    val page: Int,
+
     @ColumnInfo(name = "source_id")
     val sourceId: String?,
 
@@ -29,7 +32,7 @@ data class ArticleEntity(
     val imageUrl: String?,
 
     @ColumnInfo(name = "published_at")
-    val publishedAt: String,
+    val publishedAt: Long,
 
     @ColumnInfo(name = "content")
     val content: String?,
@@ -38,5 +41,8 @@ data class ArticleEntity(
     val isFavorite: Boolean = false,
 
     @ColumnInfo(name = "saved_at")
-    val savedAt: Long = System.currentTimeMillis()
+    val savedAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "category")
+    val category: String? = null
 )

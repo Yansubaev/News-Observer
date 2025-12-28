@@ -1,16 +1,20 @@
-package com.ians.observer.domain.repository
+package com.ians.observer.data.repository
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.ians.observer.data.local.dao.ArticleDao
+import androidx.paging.map
+import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.toArticle
 import com.ians.observer.data.local.entity.toEntity
-import com.ians.observer.data.paging.ArticlePagingSource
+import com.ians.observer.data.paging.ArticleRemoteMediatorFactory
 import com.ians.observer.data.remote.api.NewsApi
 import com.ians.observer.data.remote.dto.toArticle
 import com.ians.observer.domain.model.Article
+import com.ians.observer.domain.repository.ArticleRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -20,7 +24,8 @@ import javax.inject.Singleton
 @Singleton
 class ArticleRepositoryImpl @Inject constructor(
     private val newsApi: NewsApi,
-    private val articleDao: ArticleDao
+    private val database: NewsDatabase,
+    private val remoteMediatorFactory: ArticleRemoteMediatorFactory
 ) : ArticleRepository {
 
     override fun getTopHeadlines(
@@ -28,7 +33,7 @@ class ArticleRepositoryImpl @Inject constructor(
         category: String?
     ): Flow<Result<List<Article>>> = flow {
 
-        val cachedArticles = articleDao.getAllArticles()
+        val cachedArticles = database.articleDao().getAllArticles()
             .map { entities -> entities.map { it.toArticle() } }
             .first()
 
@@ -44,10 +49,15 @@ class ArticleRepositoryImpl @Inject constructor(
 
             if (response.status == "ok") {
 
-                val freshArticles = response.articles.map { it.toArticle(isFavorite(it.url)) }
-                articleDao.deleteNonFavorites()
+                val freshArticles = response.articles.map {
+                    it.toArticle(
+                        isFavorite(it.url),
+                        page = 0,
+                    )
+                }
+                database.articleDao().deleteNonFavorites()
 
-                articleDao.insertArticles(
+                database.articleDao().insertArticles(
                     freshArticles.map { it.toEntity() }
                 )
 
@@ -58,7 +68,7 @@ class ArticleRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             print(e.message)
 
-            val cachedData = articleDao.getAllArticles()
+            val cachedData = database.articleDao().getAllArticles()
                 .map { it.map { entity -> entity.toArticle() } }
 
             cachedData.collect { cached ->
@@ -69,33 +79,38 @@ class ArticleRepositoryImpl @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalPagingApi::class)
     override fun getTopHeadlinesPaging(
         country: String,
         category: String?
-    ): Flow<PagingData<Article>> = Pager(
-        config = PagingConfig(
-            pageSize = ArticlePagingSource.ITEMS_PER_PAGE,
-            prefetchDistance = 3,
-            enablePlaceholders = false,
-            initialLoadSize = ArticlePagingSource.ITEMS_PER_PAGE,
-            maxSize = 200
-        ),
-        pagingSourceFactory = {
-            ArticlePagingSource(
-                newsApi = newsApi,
-                articleDao = articleDao,
-                country = country,
-                category = category
-            )
-        }
-    ).flow
+    ): Flow<PagingData<Article>> = flow {
+        val remoteMediator = remoteMediatorFactory.create(category)
+
+        val pager = Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false,
+                initialLoadSize = 20
+            ),
+            remoteMediator = remoteMediator,
+            pagingSourceFactory = {
+                database.articlePagingDao().pagingSource(category = category)
+            }
+        )
+
+        emitAll(pager.flow.map { pagingData ->
+            pagingData.map { entity ->
+                entity.toArticle()
+            }
+        })
+    }
 
     override fun searchNews(
         query: String,
         language: String?
     ): Flow<Result<List<Article>>> = flow {
 
-        val cachedResults = articleDao.searchArticles(query)
+        val cachedResults = database.articleDao().searchArticles(query)
             .map { entities -> entities.map { it.toArticle() } }
             .first()
 
@@ -110,9 +125,14 @@ class ArticleRepositoryImpl @Inject constructor(
             )
 
             if (response.status == "ok") {
-                val freshArticles = response.articles.map { it.toArticle(isFavorite(it.url)) }
+                val freshArticles = response.articles.map {
+                    it.toArticle(
+                        isFavorite(it.url),
+                        page = 0,
+                    )
+                }
 
-                articleDao.insertArticles(
+                database.articleDao().insertArticles(
                     freshArticles.map { it.toEntity() }
                 )
 
@@ -136,27 +156,20 @@ class ArticleRepositoryImpl @Inject constructor(
     }
 
     override fun getFavoriteArticles(): Flow<List<Article>> {
-        return articleDao.getFavoriteArticles()
+        return database.articleDao().getFavoriteArticles()
             .map { entities -> entities.map { it.toArticle() } }
     }
 
     override suspend fun toggleFavorite(article: Article) {
-        val existingArticle = articleDao.getArticleByUrl(article.url)
-
-        if (existingArticle != null) {
-            articleDao.toggleFavorite(article.url)
-        } else {
-            val favoriteArticle = article.copy(isFavorite = true)
-            articleDao.insertArticle(favoriteArticle.toEntity())
-        }
+        database.articleDao().toggleFavorite(article.url)
     }
 
     override suspend fun isFavorite(articleUrl: String): Boolean {
-        return articleDao.isFavorite(articleUrl)
+        return database.articleDao().isFavorite(articleUrl)
     }
 
     override suspend fun getArticleByUrl(articleUrl: String): Article? {
-        return articleDao.getArticleByUrl(articleUrl)?.toArticle()
+        return database.articleDao().getArticleByUrl(articleUrl)?.toArticle()
     }
 
 }

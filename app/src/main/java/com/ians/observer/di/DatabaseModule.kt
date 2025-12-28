@@ -3,6 +3,7 @@ package com.ians.observer.di
 import android.content.Context
 import androidx.room.Room
 import com.ians.observer.data.local.dao.ArticleDao
+import com.ians.observer.data.local.dao.ArticlePagingDao
 import com.ians.observer.data.local.dao.NewsDatabase
 import dagger.Module
 import dagger.Provides
@@ -25,6 +26,7 @@ object DatabaseModule {
             klass = NewsDatabase::class.java,
             name = "news_database"
         )
+            .fallbackToDestructiveMigration(true)
             .build()
     }
 
@@ -32,7 +34,15 @@ object DatabaseModule {
     @Singleton
     fun provideArticleDao(
         database: NewsDatabase
-    ): ArticleDao{
+    ): ArticleDao {
         return database.articleDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideArticlePagingSourceDao(
+        database: NewsDatabase
+    ): ArticlePagingDao {
+        return database.articlePagingDao()
     }
 }

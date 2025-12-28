@@ -2,6 +2,7 @@ package com.ians.observer.domain.model
 
 data class Article (
     val id: String,
+    val page: Int,
     val sourceId: String?,
     val sourceName: String,
     val author: String?,
@@ -9,8 +10,9 @@ data class Article (
     val description: String?,
     val url: String,
     val imageUrl: String?,
-    val publishedAt: String,
+    val publishedAt: Long,
     val content: String?,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val category: Category? = null
 )
 

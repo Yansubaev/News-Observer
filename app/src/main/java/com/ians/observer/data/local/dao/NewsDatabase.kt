@@ -6,10 +6,11 @@ import com.ians.observer.data.local.entity.ArticleEntity
 
 @Database(
     entities = [ArticleEntity::class],
-    version = 1,
+    version = 5,
     exportSchema = false
 )
 
 abstract class NewsDatabase : RoomDatabase() {
     abstract fun articleDao(): ArticleDao
+    abstract fun articlePagingDao(): ArticlePagingDao
 }

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,8 +59,9 @@ import coil.compose.AsyncImage
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
-import com.ians.observer.presentation.test.HomeViewModel
-import com.ians.observer.presentation.test.UiState
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,30 +123,10 @@ fun HomeScreen(
                     articles = articles,
                     onFavoriteClick = { article ->
                         viewModel.toggleFavorite(article)
+//                        articles.refresh()
                     }
                 )
             }
-//            when (articles.loadState.) {
-//                is UiState.Initial -> {
-//                    InitialContent()
-//                }
-//
-//                is UiState.Loading -> {
-//                    LoadingContent()
-//                }
-//
-//                is UiState.Success -> {
-//                    SuccessContent(
-//                        articles = (uiState as UiState.Success).articles,
-//                        onFavoriteClick = { article ->
-//                            viewModel.toggleFavorite(article)
-//                        })
-//                }
-//
-//                is UiState.Error -> {
-//                    ErrorContent(message = (uiState as UiState.Error).message)
-//                }
-//            }
         }
     }
 }
@@ -332,8 +312,11 @@ fun ArticleCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Publish date
+            val publishedAt = Date(article.publishedAt)
+            val formatter = SimpleDateFormat("EEEE, d MMMM HH:mm", Locale.getDefault())
+            val formattedDate = formatter.format(publishedAt)
             Text(
-                text = "Published: ${article.publishedAt}",
+                text = formattedDate,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
