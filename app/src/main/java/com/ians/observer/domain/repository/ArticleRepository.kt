@@ -29,7 +29,11 @@ interface ArticleRepository {
 
     fun getFavoriteArticles(): Flow<List<Article>>
 
+    fun getFavoriteArticlesForCategory(category: String): Flow<List<Article>>
+
     suspend fun toggleFavorite(article: Article)
+
+    suspend fun getFavoriteCategories(): Flow<List<String>>
 
     suspend fun isFavorite(articleUrl: String): Boolean
 

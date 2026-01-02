@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -66,49 +67,33 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    nestedScrollConnection: NestedScrollConnection,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val articles = viewModel.articles.collectAsLazyPagingItems()
     val selectedCategory by viewModel.selectedCategoryState.collectAsState()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.app_name)) },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    scrollBehavior = scrollBehavior
+    Column{
+        Row(
+            modifier = Modifier
+                .defaultMinSize()
+                .horizontalScroll(rememberScrollState())
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp, vertical = 0.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Category.entries.forEach { category ->
+                FilterChip(
+                    selected = category == selectedCategory,
+                    onClick = { viewModel.changeCategory(category) },
+                    label = { Text(stringResource(category.stringRes)) }
                 )
-
-                Row(
-                    modifier = Modifier
-                        .defaultMinSize()
-                        .horizontalScroll(rememberScrollState())
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 16.dp, vertical = 0.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Category.entries.forEach { category ->
-                        FilterChip(
-                            selected = category == selectedCategory,
-                            onClick = { viewModel.changeCategory(category) },
-                            label = { Text(stringResource(category.stringRes)) }
-                        )
-                    }
-                }
             }
         }
-    ) { paddingValues ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
         ) {
             if (articles.itemCount == 0) {
                 Text(
@@ -121,9 +106,9 @@ fun HomeScreen(
             } else {
                 SuccessContent(
                     articles = articles,
+                    nestedScrollConnection = nestedScrollConnection,
                     onFavoriteClick = { article ->
                         viewModel.toggleFavorite(article)
-//                        articles.refresh()
                     }
                 )
             }
@@ -154,6 +139,7 @@ fun InitialContent() {
 @Composable
 fun SuccessContent(
     articles: LazyPagingItems<Article>,
+    nestedScrollConnection: NestedScrollConnection,
     onFavoriteClick: (Article) -> Unit
 ) {
     if (articles.itemCount == 0) {
@@ -167,7 +153,8 @@ fun SuccessContent(
     } else {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection),
             contentPadding = PaddingValues(24.dp),
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
@@ -356,9 +343,9 @@ fun AnimatedFavoriteButton(
     ) {
         Icon(
             painter = if (isFavorite) {
-                painterResource(R.drawable.favorite_enabled)
+                painterResource(R.drawable.ic_favorite_enabled)
             } else {
-                painterResource(R.drawable.favorite_disabled)
+                painterResource(R.drawable.ic_favorite_disabled)
             },
             contentDescription = if (isFavorite) {
                 "Remove from favorites"

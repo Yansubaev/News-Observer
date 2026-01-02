@@ -160,8 +160,17 @@ class ArticleRepositoryImpl @Inject constructor(
             .map { entities -> entities.map { it.toArticle() } }
     }
 
+    override fun getFavoriteArticlesForCategory(category: String): Flow<List<Article>> {
+        return database.articleDao().getFavoriteArticlesForCategory(category)
+            .map { entities -> entities.map { it.toArticle() } }
+    }
+
     override suspend fun toggleFavorite(article: Article) {
         database.articleDao().toggleFavorite(article.url)
+    }
+
+    override suspend fun getFavoriteCategories(): Flow<List<String>> {
+        return database.articleDao().getFavoriteCategories()
     }
 
     override suspend fun isFavorite(articleUrl: String): Boolean {

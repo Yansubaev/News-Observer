@@ -6,7 +6,7 @@ import com.ians.observer.data.local.entity.ArticleEntity
 
 @Database(
     entities = [ArticleEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 

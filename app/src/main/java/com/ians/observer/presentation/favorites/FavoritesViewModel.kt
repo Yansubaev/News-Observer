@@ -1,10 +1,7 @@
-package com.ians.observer.presentation.home
+package com.ians.observer.presentation.favorites
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.ians.observer.data.local.entity.categoryFromString
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
@@ -20,10 +17,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.listOf
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class FavoritesViewModel @Inject constructor(
     private val articleRepository: ArticleRepository
 ) : ViewModel() {
 
@@ -31,12 +27,22 @@ class HomeViewModel @Inject constructor(
     val selectedCategoryState: StateFlow<Category> = _selectedCategoryState.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val articles: Flow<PagingData<Article>> = _selectedCategoryState.flatMapLatest { category ->
-        articleRepository.getTopHeadlinesPaging(country = "us", category = category.value)
-    }.cachedIn(viewModelScope)
+    val articles: Flow<List<Article>> = _selectedCategoryState.flatMapLatest { category ->
+        articleRepository.getFavoriteArticlesForCategory(category.value ?: "")
+    }
 
+    private val _categories: MutableStateFlow<List<Category>> = MutableStateFlow(listOf())
+    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            _categories.value = articleRepository.getFavoriteCategories().map { articles ->
+                articles.map { article ->
+                    categoryFromString(article) ?: Category.GENERAL
+                }
+            }.first()
+        }
+
         _selectedCategoryState.value = Category.GENERAL
     }
 
@@ -47,4 +53,5 @@ class HomeViewModel @Inject constructor(
     fun toggleFavorite(article: Article) = viewModelScope.launch {
         articleRepository.toggleFavorite(article)
     }
+
 }

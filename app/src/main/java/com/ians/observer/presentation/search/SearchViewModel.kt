@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.home
+package com.ians.observer.presentation.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

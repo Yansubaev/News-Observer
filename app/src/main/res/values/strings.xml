@@ -1,6 +1,7 @@
 <resources>
-    <string name="cat_general">All</string>
-    <string name="app_name">Observer</string>
+    <string name="app_name">News Observer</string>
+    <string name="cat_all">ALl</string>
+    <string name="cat_general">General</string>
     <string name="cat_business">Business</string>
     <string name="cat_entertainment">Entertainment</string>
     <string name="cat_health">Health</string>
@@ -8,4 +9,8 @@
     <string name="cat_sports">Sports</string>
     <string name="cat_technology">Technology</string>
     <string name="no_articles">No articles found</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_profile">Profile</string>
 </resources>

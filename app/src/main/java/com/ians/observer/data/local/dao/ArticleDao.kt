@@ -45,6 +45,9 @@ interface ArticleDao {
     @Query("SELECT * FROM articles WHERE is_favorite = 1 ORDER BY saved_at DESC")
     fun getFavoriteArticles(): Flow<List<ArticleEntity>>
 
+    @Query("SELECT * FROM articles WHERE is_favorite = 1 AND category = :category")
+    fun getFavoriteArticlesForCategory(category: String): Flow<List<ArticleEntity>>
+
     @Query("SELECT url FROM ARTICLES WHERE is_favorite = 1 ORDER BY saved_at DESC")
     fun getFavoriteArticlesUrls(): Flow<List<String>>
 
@@ -111,5 +114,8 @@ interface ArticleDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM articles WHERE url = :url AND is_favorite = 1)")
     suspend fun isFavorite(url: String): Boolean
+
+    @Query("SELECT DISTINCT category FROM articles WHERE is_favorite = 1")
+    fun getFavoriteCategories(): Flow<List<String>>
 }
 
