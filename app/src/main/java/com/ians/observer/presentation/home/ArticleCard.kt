@@ -1,0 +1,201 @@
+package com.ians.observer.presentation.home
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.ians.observer.R
+import com.ians.observer.domain.model.Article
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+
+@Preview
+@Composable
+private fun ArticleCardPreview() {
+    ArticleCard(
+        Article(
+            "", 0, "", "BBC", "Denis Ians", "Preview article",
+            description = "This is a preview article",
+            url = "https://ichef.bbci.co.uk/images/ic/1920x1080/p0nhlk0l.jpg.webp",
+            publishedAt = 0,
+            content = "",
+            imageUrl = ""
+        )
+    ) { }
+}
+
+@Composable
+fun ArticleCard(
+    article: Article,
+    onFavoriteClick: (Article) -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RectangleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(0.dp)
+        ) {
+            article.imageUrl?.let { imageUrl ->
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = article.title,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentScale = ContentScale.Crop,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Source
+            Row(
+                modifier = Modifier
+                    .height(28.dp)
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = article.sourceName,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                AnimatedFavoriteButton(
+                    isFavorite = article.isFavorite,
+                    onClick = { onFavoriteClick(article) },
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = CircleShape
+                        )
+                        .size(28.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Title
+            Text(
+                text = article.title,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            // Description
+            article.description?.let { description ->
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Publish date
+            val publishedAt = Date(article.publishedAt)
+            val formatter = SimpleDateFormat("EEEE, d MMMM HH:mm", Locale.getDefault())
+            val formattedDate = formatter.format(publishedAt)
+            Text(
+                text = formattedDate,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun AnimatedFavoriteButton(
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isFavorite) 1.2f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+
+    val tint by animateColorAsState(
+        targetValue = if (isFavorite) {
+            Color(0xFFFF6B35)
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(durationMillis = 300),
+        label = "tint"
+    )
+
+    IconToggleButton(
+        checked = isFavorite,
+        onCheckedChange = { onClick() },
+        modifier = modifier
+    ) {
+        Icon(
+            painter = if (isFavorite) {
+                painterResource(R.drawable.ic_favorite_enabled)
+            } else {
+                painterResource(R.drawable.ic_favorite_disabled)
+            },
+            contentDescription = if (isFavorite) {
+                "Remove from favorites"
+            } else {
+                "Add to favorites"
+            },
+            tint = tint,
+            modifier = Modifier
+                .scale(scale)
+                .size(16.dp)
+        )
+    }
+}

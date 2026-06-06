@@ -4,11 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,12 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ians.observer.presentation.favorites.FavoritesScreen
-import com.ians.observer.presentation.home.HomeScreen
+import com.ians.observer.presentation.navigation.AppNavHost
 import com.ians.observer.presentation.navigation.Screen
 import com.ians.observer.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,7 +51,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    val screens = Screen.entries.toList()
+    val screens = listOf(Screen.Home, Screen.Search, Screen.Favorites, Screen.Profile)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -66,11 +59,12 @@ fun MainScreen() {
     Scaffold(
         topBar = {
             val name = when (currentRoute) {
-                Screen.HOME.route -> stringResource(R.string.app_name)
-                Screen.FAVORITES.route -> stringResource(R.string.nav_favorites)
+                Screen.Home.route -> stringResource(R.string.app_name)
+                Screen.Favorites.route -> stringResource(R.string.nav_favorites)
+                Screen.Search.route -> stringResource(R.string.nav_search)
                 else -> ""
             }
-            if (currentRoute == Screen.HOME.route || currentRoute == Screen.FAVORITES.route)
+            if (currentRoute == Screen.Home.route || currentRoute == Screen.Favorites.route)
                 TopAppBar(
                     title = { Text(name) },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -87,11 +81,11 @@ fun MainScreen() {
                     NavigationBarItem(
                         icon = {
                             Icon(
-                                painter = painterResource(screen.icon),
-                                contentDescription = stringResource(screen.label)
+                                painter = painterResource(screen.iconRes),
+                                contentDescription = stringResource(screen.labelRes)
                             )
                         },
-                        label = { Text(stringResource(screen.label)) },
+                        label = { Text(stringResource(screen.labelRes)) },
                         selected = currentRoute == screen.route,
                         onClick = {
                             navController.navigate(screen.route) {
@@ -115,20 +109,6 @@ fun MainScreen() {
 
             }
         }) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.HOME.route,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { fadeIn(animationSpec = tween(250)) },
-            exitTransition = { fadeOut(animationSpec = tween(250)) }
-        ) {
-            composable(Screen.HOME.route) {
-                HomeScreen(scrollBehavior.nestedScrollConnection)
-            }
-            composable(Screen.FAVORITES.route) {
-                FavoritesScreen(scrollBehavior.nestedScrollConnection)
-            }
-        }
+        AppNavHost(navController, scrollBehavior, paddingValues)
     }
-
 }

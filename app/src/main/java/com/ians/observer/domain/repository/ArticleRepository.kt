@@ -20,11 +20,9 @@ interface ArticleRepository {
         language: String? = null
     ): Flow<Result<List<Article>>>
 
-    fun searchNews(
+    fun searchNewsPaging(
         query: String,
-        language: String? = null,
-        page: Int = 1,
-        pageSize: Int = 20
+        language: String? = null
     ): Flow<PagingData<Article>>
 
     fun getFavoriteArticles(): Flow<List<Article>>

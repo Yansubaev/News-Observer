@@ -9,6 +9,7 @@ import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.toArticle
 import com.ians.observer.data.local.entity.toEntity
 import com.ians.observer.data.paging.ArticleRemoteMediatorFactory
+import com.ians.observer.data.paging.ArticleSearchPagingSource
 import com.ians.observer.data.remote.api.NewsApi
 import com.ians.observer.data.remote.dto.toArticle
 import com.ians.observer.domain.model.Article
@@ -146,14 +147,24 @@ class ArticleRepositoryImpl @Inject constructor(
 
     }
 
-    override fun searchNews(
+    override fun searchNewsPaging(
         query: String,
         language: String?,
-        page: Int,
-        pageSize: Int
-    ): Flow<PagingData<Article>> = flow {
-
-    }
+    ): Flow<PagingData<Article>> = Pager(
+        config = PagingConfig(
+            pageSize = 20,
+            enablePlaceholders = false,
+            initialLoadSize = 20
+        ),
+        pagingSourceFactory = {
+            ArticleSearchPagingSource(
+                api = newsApi,
+                database = database,
+                query = query,
+                language = language
+            )
+        }
+    ).flow
 
     override fun getFavoriteArticles(): Flow<List<Article>> {
         return database.articleDao().getFavoriteArticles()
