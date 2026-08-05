@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,7 +81,7 @@ class SearchViewModel @Inject constructor(
         settingRepository.saveSearchQuery(query)
     }
 
-    fun deleteFromHistory(string: String) {
-        if (string.isEmpty()) return
+    fun toggleFavorite(article: Article) = viewModelScope.launch {
+        articleRepository.toggleFavorite(article)
     }
 }

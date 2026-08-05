@@ -10,11 +10,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,27 +25,25 @@ class FavoritesViewModel @Inject constructor(
     private val articleRepository: ArticleRepository
 ) : ViewModel() {
 
-    private val _selectedCategoryState = MutableStateFlow(Category.GENERAL)
+    private val _selectedCategoryState = MutableStateFlow(Category.ALL)
     val selectedCategoryState: StateFlow<Category> = _selectedCategoryState.asStateFlow()
+
+    val categories: StateFlow<List<Category>> =
+        articleRepository.getFavoriteCategories().map { strings ->
+            listOf(Category.ALL) + strings.map { categoryFromString(it) ?: Category.GENERAL }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val articles: Flow<List<Article>> = _selectedCategoryState.flatMapLatest { category ->
-        articleRepository.getFavoriteArticlesForCategory(category.value ?: "")
-    }
-
-    private val _categories: MutableStateFlow<List<Category>> = MutableStateFlow(listOf())
-    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            _categories.value = articleRepository.getFavoriteCategories().map { articles ->
-                articles.map { article ->
-                    categoryFromString(article) ?: Category.GENERAL
-                }
-            }.first()
+        if (category == Category.ALL) {
+            articleRepository.getFavoriteArticles()
+        } else {
+            articleRepository.getFavoriteArticlesForCategory(category.value)
         }
-
-        _selectedCategoryState.value = Category.GENERAL
     }
 
     fun changeCategory(category: Category) {

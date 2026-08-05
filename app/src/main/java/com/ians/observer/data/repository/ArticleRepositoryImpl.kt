@@ -71,11 +71,10 @@ class ArticleRepositoryImpl @Inject constructor(
 
             val cachedData = database.articleDao().getAllArticles()
                 .map { it.map { entity -> entity.toArticle() } }
+                .first()
 
-            cachedData.collect { cached ->
-                if (cached.isEmpty()) {
-                    emit(Result.failure(e))
-                }
+            if (cachedData.isEmpty()) {
+                emit(Result.failure(e))
             }
         }
     }
@@ -177,10 +176,14 @@ class ArticleRepositoryImpl @Inject constructor(
     }
 
     override suspend fun toggleFavorite(article: Article) {
+        if (database.articleDao().getArticleByUrl(article.url) == null) {
+            database.articleDao().insertArticle(article.toEntity())
+        }
+
         database.articleDao().toggleFavorite(article.url)
     }
 
-    override suspend fun getFavoriteCategories(): Flow<List<String>> {
+    override fun getFavoriteCategories(): Flow<List<String>> {
         return database.articleDao().getFavoriteCategories()
     }
 

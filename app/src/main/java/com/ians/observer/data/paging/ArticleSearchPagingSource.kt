@@ -1,5 +1,6 @@
 package com.ians.observer.data.paging
 
+import androidx.paging.LoadType
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.ians.observer.data.local.dao.NewsDatabase
@@ -7,6 +8,7 @@ import com.ians.observer.data.remote.api.NewsApi
 import com.ians.observer.data.remote.dto.toArticle
 import com.ians.observer.domain.model.Article
 import com.ians.observer.ui.theme.errorDark
+import kotlinx.coroutines.flow.first
 
 class ArticleSearchPagingSource(
     private val api: NewsApi,
@@ -15,6 +17,8 @@ class ArticleSearchPagingSource(
     private val language: String?
 
 ) : PagingSource<Int, Article>() {
+    private val articleDao = database.articleDao()
+
     override fun getRefreshKey(state: PagingState<Int, Article>): Int? {
         return state.anchorPosition?.let { position ->
             state.closestPageToPosition(position)?.prevKey?.plus(1)
@@ -37,10 +41,12 @@ class ArticleSearchPagingSource(
                 return LoadResult.Error(Exception("API error: ${response.status}"))
             }
 
+            val existingFavoriteUrls = articleDao.getFavoriteArticlesUrls().first()
+
             val articles = response.articles.map {
                 it.toArticle(
                     page = page,
-                    isFavorite = database.articleDao().isFavorite(it.url)
+                    isFavorite = existingFavoriteUrls.contains(it.url)
                 )
             }
 

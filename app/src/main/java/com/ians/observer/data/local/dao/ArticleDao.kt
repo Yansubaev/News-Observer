@@ -42,7 +42,7 @@ interface ArticleDao {
     @Query("SELECT * FROM articles WHERE page = :page ORDER BY published_at DESC")
     fun getArticlesByPage(page: Int): List<ArticleEntity>
 
-    @Query("SELECT * FROM articles WHERE is_favorite = 1 ORDER BY saved_at DESC")
+    @Query("SELECT * FROM articles WHERE is_favorite = 1 ORDER BY saved_at")
     fun getFavoriteArticles(): Flow<List<ArticleEntity>>
 
     @Query("SELECT * FROM articles WHERE is_favorite = 1 AND category = :category")

@@ -106,7 +106,9 @@ fun HomeScreenState(
             .padding(horizontal = 16.dp, vertical = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Category.entries.forEach { category ->
+        Category.entries.toMutableList().filter {
+            it != Category.ALL
+        }.forEach { category ->
             FilterChip(
                 selected = category == selectedCategory,
                 onClick = { onChangeCategory(category) },

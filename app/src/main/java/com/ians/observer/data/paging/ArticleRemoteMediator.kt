@@ -32,7 +32,9 @@ class ArticleRemoteMediatorFactory @Inject constructor(
             category = category,
             lastSyncTime = settingRepository.getLastSyncTime(),
             syncInterval = settingRepository.getSyncInterval()
-        )
+        ) {
+            settingRepository.saveLastSyncTime(it)
+        }
     }
 }
 
@@ -42,8 +44,9 @@ class ArticleRemoteMediator(
     private val database: NewsDatabase,
     private val country: String = "us",
     private val category: String? = null,
-    private val lastSyncTime: Long = System.currentTimeMillis(),
-    private val syncInterval: Long = 10 * 60 * 1000 // 10 minutes
+    private val lastSyncTime: Long = 0L,
+    private val syncInterval: Long = 10 * 60 * 1000, // 10 minutes
+    private val onSyncSuccess: suspend (Long) -> Unit,
 ) : RemoteMediator<Int, ArticleEntity>() {
 
     private val articleDao = database.articleDao()
@@ -122,22 +125,15 @@ class ArticleRemoteMediator(
                 articleDao.insertOrUpdateArticles(articles)
             }
 
-            val endOfPaginationReached = articles.isEmpty()
+            if (loadType == LoadType.REFRESH) {
+                onSyncSuccess(System.currentTimeMillis())
+            }
 
+            val endOfPaginationReached = articles.isEmpty()
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+
         } catch (e: Exception) {
             MediatorResult.Error(e)
-        }
-    }
-
-    private fun parseDateToMillis(dateString: String): Long? {
-        return try {
-            // (format: "2024-01-15T10:30:00Z")
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-                .parse(dateString)
-                ?.time
-        } catch (e: Exception) {
-            null
         }
     }
 }

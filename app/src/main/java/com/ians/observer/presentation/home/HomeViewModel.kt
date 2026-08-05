@@ -1,11 +1,9 @@
 package com.ians.observer.presentation.home
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.ians.observer.data.local.entity.categoryFromString
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.repository.ArticleRepository
@@ -19,13 +17,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.listOf
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -48,11 +43,6 @@ class HomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = PagingData.empty()
         )
-
-
-    init {
-        _selectedCategoryState.value = Category.GENERAL
-    }
 
     fun changeCategory(category: Category) {
         _selectedCategoryState.value = category

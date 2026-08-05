@@ -7,7 +7,7 @@ import java.util.UUID
 
 fun ArticleDto.toArticle(isFavorite: Boolean = false, page: Int): Article {
     return Article(
-        id = UUID.randomUUID().toString(),
+        id = url,
         page = page,
         sourceId = source.id,
         sourceName = source.name,
@@ -16,7 +16,7 @@ fun ArticleDto.toArticle(isFavorite: Boolean = false, page: Int): Article {
         description = description,
         url = url,
         imageUrl = urlToImage,
-        publishedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        publishedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US)
             .parse(publishedAt)
             ?.time ?: System.currentTimeMillis(),
         content = content,

@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.ians.observer.R
 
 enum class Category(
-    val value: String?,
+    val value: String,
     @get:StringRes val stringRes: Int
 ) {
     GENERAL(
@@ -34,9 +34,13 @@ enum class Category(
     TECHNOLOGY(
         "technology",
         R.string.cat_technology
+    ),
+    ALL(
+        "all",
+        R.string.cat_all
     );
 
     override fun toString(): String {
-        return value ?: super.toString()
+        return value
     }
 }

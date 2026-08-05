@@ -31,7 +31,7 @@ interface ArticleRepository {
 
     suspend fun toggleFavorite(article: Article)
 
-    suspend fun getFavoriteCategories(): Flow<List<String>>
+    fun getFavoriteCategories(): Flow<List<String>>
 
     suspend fun isFavorite(articleUrl: String): Boolean
 
