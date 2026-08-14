@@ -28,6 +28,7 @@ class SettingsRepositoryImpl @Inject constructor(
     private object PreferencesKeys {
         val LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
         val COUNTRY = stringPreferencesKey("country")
+        val LANGUAGE = stringPreferencesKey("language")
         val SEARCH_HISTORY = stringPreferencesKey("search_history")
     }
 
@@ -51,6 +52,24 @@ class SettingsRepositoryImpl @Inject constructor(
         return dataStore.data.map { prefs ->
             prefs[PreferencesKeys.COUNTRY] ?: "us"
         }.first()
+    }
+
+    override suspend fun setCountryPreference(countryCode: String) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.COUNTRY] = countryCode
+        }
+    }
+
+    override suspend fun getLanguagePreference(): String {
+        return dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.LANGUAGE] ?: "en"
+        }.first()
+    }
+
+    override suspend fun setLanguagePreference(languageCode: String) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LANGUAGE] = languageCode
+        }
     }
 
     override fun getSearchHistory(): Flow<List<String>> {

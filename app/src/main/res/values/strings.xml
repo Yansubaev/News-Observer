@@ -15,4 +15,95 @@
     <string name="nav_profile">Profile</string>
     <string name="search_news">Search news…</string>
     <string name="recents">Recents</string>
+
+
+    <string name="settings">Settings</string>
+    <string name="settings_sources">News sources</string>
+    <string name="settings_language">Article language</string>
+    <string name="settings_region">Region</string>
+    <string name="settings_clear_cache">Clear cache</string>
+    <string name="settings_about">About</string>
+    <string name="settings_notifications">New article notifications</string>
+
+    <string name="cd_settings_sources">News sources icon</string>
+    <string name="cd_settings_language">Article language icon</string>
+    <string name="cd_settings_region">Region icon</string>
+    <string name="cd_settings_clear_cache">Clear cache icon</string>
+    <string name="cd_settings_about">About icon</string>
+    <string name="cd_settings_notifications">Notifications icon</string>
+    <string name="cd_settings">Settings icon</string>
+
+    <string name="source_newsapi" translatable="false">News API</string>
+
+    <!-- News languages -->
+    <string name="news_language_ar">Arabic</string>
+    <string name="news_language_de">German</string>
+    <string name="news_language_en">English</string>
+    <string name="news_language_es">Spanish</string>
+    <string name="news_language_fr">French</string>
+    <string name="news_language_he">Hebrew</string>
+    <string name="news_language_it">Italian</string>
+    <string name="news_language_nl">Dutch</string>
+    <string name="news_language_no">Norwegian</string>
+    <string name="news_language_pt">Portuguese</string>
+    <string name="news_language_ru">Russian</string>
+    <string name="news_language_sv">Swedish</string>
+    <string name="news_language_ud">Urdu</string>
+    <string name="news_language_zh">Chinese</string>
+
+    <!-- News regions -->
+    <string name="news_region_ar">Argentina</string>
+    <string name="news_region_au">Australia</string>
+    <string name="news_region_at">Austria</string>
+    <string name="news_region_be">Belgium</string>
+    <string name="news_region_br">Brazil</string>
+    <string name="news_region_bg">Bulgaria</string>
+    <string name="news_region_ca">Canada</string>
+    <string name="news_region_cn">China</string>
+    <string name="news_region_co">Colombia</string>
+    <string name="news_region_cu">Cuba</string>
+    <string name="news_region_cz">Czechia</string>
+    <string name="news_region_eg">Egypt</string>
+    <string name="news_region_fr">France</string>
+    <string name="news_region_de">Germany</string>
+    <string name="news_region_gr">Greece</string>
+    <string name="news_region_hk">Hong Kong</string>
+    <string name="news_region_hu">Hungary</string>
+    <string name="news_region_in">India</string>
+    <string name="news_region_id">Indonesia</string>
+    <string name="news_region_ie">Ireland</string>
+    <string name="news_region_il">Israel</string>
+    <string name="news_region_it">Italy</string>
+    <string name="news_region_jp">Japan</string>
+    <string name="news_region_lv">Latvia</string>
+    <string name="news_region_lt">Lithuania</string>
+    <string name="news_region_my">Malaysia</string>
+    <string name="news_region_mx">Mexico</string>
+    <string name="news_region_ma">Morocco</string>
+    <string name="news_region_nl">Netherlands</string>
+    <string name="news_region_nz">New Zealand</string>
+    <string name="news_region_ng">Nigeria</string>
+    <string name="news_region_no">Norway</string>
+    <string name="news_region_ph">Philippines</string>
+    <string name="news_region_pl">Poland</string>
+    <string name="news_region_pt">Portugal</string>
+    <string name="news_region_ro">Romania</string>
+    <string name="news_region_ru">Russia</string>
+    <string name="news_region_sa">Saudi Arabia</string>
+    <string name="news_region_rs">Serbia</string>
+    <string name="news_region_sg">Singapore</string>
+    <string name="news_region_sk">Slovakia</string>
+    <string name="news_region_si">Slovenia</string>
+    <string name="news_region_za">South Africa</string>
+    <string name="news_region_kr">South Korea</string>
+    <string name="news_region_se">Sweden</string>
+    <string name="news_region_ch">Switzerland</string>
+    <string name="news_region_tw">Taiwan</string>
+    <string name="news_region_th">Thailand</string>
+    <string name="news_region_tr">Turkey</string>
+    <string name="news_region_ae">United Arab Emirates</string>
+    <string name="news_region_ua">Ukraine</string>
+    <string name="news_region_gb">United Kingdom</string>
+    <string name="news_region_us">United States</string>
+    <string name="news_region_ve">Venezuela</string>
 </resources>

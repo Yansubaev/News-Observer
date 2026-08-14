@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.repository.ArticleRepository
+import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -24,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val articleRepository: ArticleRepository
+    private val articleRepository: ArticleRepository,
+    private val settingsRepository: SettingRepository
 ) : ViewModel() {
 
     private val _selectedCategoryState = MutableStateFlow(Category.GENERAL)
@@ -35,7 +37,10 @@ class HomeViewModel @Inject constructor(
         .debounce(300)
         .distinctUntilChanged()
         .flatMapLatest { category ->
-            articleRepository.getTopHeadlinesPaging(country = "us", category = category.value)
+            articleRepository.getTopHeadlinesPaging(
+                country = settingsRepository.getCountryPreference(),
+                category = category.value
+            )
         }
         .cachedIn(viewModelScope)
         .stateIn(

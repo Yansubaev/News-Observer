@@ -7,6 +7,9 @@ interface SettingRepository {
     suspend fun saveLastSyncTime(time: Long)
     suspend fun getSyncInterval(): Long
     suspend fun getCountryPreference(): String
+    suspend fun setCountryPreference(countryCode: String)
+    suspend fun getLanguagePreference(): String
+    suspend fun setLanguagePreference(languageCode: String)
 
     fun getSearchHistory(): Flow<List<String>>
     suspend fun saveSearchQuery(query: String)

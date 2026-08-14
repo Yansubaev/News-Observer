@@ -3,6 +3,9 @@ package com.ians.observer.presentation.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,8 +17,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ians.observer.presentation.favorites.FavoritesScreen
 import com.ians.observer.presentation.home.HomeScreen
-import com.ians.observer.presentation.home.HomeScreenState
 import com.ians.observer.presentation.search.SearchScreen
+import com.ians.observer.presentation.settings.LanguageSettingsScreen
+import com.ians.observer.presentation.settings.MainSettingsScreen
+import com.ians.observer.presentation.settings.RegionSettingsScreen
+import com.ians.observer.presentation.settings.SourcesSettingsScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,11 +33,10 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Search.route,
+        startDestination = Screen.Favorites.route,
         modifier = Modifier.padding(paddingValues),
         enterTransition = { fadeIn(animationSpec = tween(250)) },
-        exitTransition = { fadeOut(animationSpec = tween(250)) }
-    ) {
+        exitTransition = { fadeOut(animationSpec = tween(250)) }) {
         composable(Screen.Home.route) {
             HomeScreen(scrollBehavior.nestedScrollConnection)
         }
@@ -40,6 +45,51 @@ fun AppNavHost(
         }
         composable(Screen.Search.route) {
             SearchScreen(scrollBehavior.nestedScrollConnection)
+        }
+
+        val enterTransition = slideInHorizontally(
+            initialOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(250)
+        )
+
+        val popEnterTransition = scaleIn(
+            initialScale = 0.95f, animationSpec = tween(250)
+        )
+
+
+        val exitTransition = slideOutHorizontally(
+            targetOffsetX = { fullWidth -> fullWidth }, animationSpec = tween(250)
+        )
+
+        composable(
+            SettingsScreen.Main.route,
+            enterTransition = { enterTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { exitTransition }) {
+            MainSettingsScreen(navController)
+        }
+
+        composable(
+            SettingsScreen.Sources.route,
+            enterTransition = { enterTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { exitTransition }) {
+            SourcesSettingsScreen(navController)
+        }
+
+        composable(
+            SettingsScreen.Language.route,
+            enterTransition = { enterTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { exitTransition }) {
+            LanguageSettingsScreen()
+        }
+
+        composable(
+            SettingsScreen.Region.route,
+            enterTransition = { enterTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { exitTransition }) {
+            RegionSettingsScreen()
         }
     }
 

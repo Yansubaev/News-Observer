@@ -56,7 +56,7 @@ class SearchViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { q ->
             if (q.isBlank()) flowOf(PagingData.empty())
-            else articleRepository.searchNewsPaging(q, "en")
+            else articleRepository.searchNewsPaging(q, settingRepository.getLanguagePreference())
         }
         .cachedIn(viewModelScope)
         .stateIn(
