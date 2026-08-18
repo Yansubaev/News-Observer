@@ -2,8 +2,6 @@ package com.ians.observer.di
 
 import com.ians.observer.BuildConfig
 import com.ians.observer.data.remote.newsapi.NewsApiApi
-import com.ians.observer.data.remote.newsapi.NewsApiProvider
-import com.ians.observer.data.remote.provider.NewsProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

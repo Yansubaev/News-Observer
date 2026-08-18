@@ -2,7 +2,6 @@ package com.ians.observer.data.remote.newsapi
 
 import com.ians.observer.data.remote.newsapi.dto.NewsApiArticleDto
 import com.ians.observer.data.remote.provider.model.RemoteArticle
-import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.ProviderId
 import java.text.SimpleDateFormat
 import java.util.Locale

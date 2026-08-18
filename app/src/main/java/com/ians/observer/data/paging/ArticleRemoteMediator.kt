@@ -6,7 +6,6 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.ians.observer.data.local.dao.NewsDatabase
-import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.ArticleFeedCrossRefEntity
 import com.ians.observer.data.local.entity.FeedEntity
 import com.ians.observer.data.local.entity.RemoteKeyEntity
@@ -17,13 +16,10 @@ import com.ians.observer.data.remote.provider.model.FeedRequest
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.toEntity
 import com.ians.observer.domain.model.Category
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.NewsCountry
-import com.ians.observer.domain.repository.SettingRepository
+import com.ians.observer.domain.model.NewsLanguage
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import kotlin.collections.emptyList
 
 class ArticleRemoteMediatorFactory @Inject constructor(
     private val newsProvider: NewsProvider,

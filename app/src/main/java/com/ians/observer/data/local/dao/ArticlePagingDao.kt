@@ -1,10 +1,8 @@
 package com.ians.observer.data.local.dao
 
 import androidx.paging.PagingSource
-import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Query
-import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.projection.FeedArticleProjection
 
 @Dao

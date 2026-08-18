@@ -3,15 +3,14 @@ package com.ians.observer.data.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.ians.observer.data.local.dao.NewsDatabase
-import com.ians.observer.data.remote.newsapi.toRemoteArticle
 import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.SearchRequest
 import com.ians.observer.data.remote.provider.model.toArticle
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 
