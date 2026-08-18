@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.ians.observer.data.local.dao.ArticleDao
 import com.ians.observer.data.local.dao.ArticlePagingDao
 import com.ians.observer.data.local.dao.NewsDatabase
+import com.ians.observer.data.local.dao.RemoteKeyDao
+import com.ians.observer.data.local.migration.MIGRATION_6_7
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,6 +29,7 @@ object DatabaseModule {
             name = "news_database"
         )
             .fallbackToDestructiveMigration(true)
+            .addMigrations(MIGRATION_6_7)
             .build()
     }
 
@@ -44,5 +47,13 @@ object DatabaseModule {
         database: NewsDatabase
     ): ArticlePagingDao {
         return database.articlePagingDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRemoteKeyDao(
+        database: NewsDatabase
+    ): RemoteKeyDao {
+        return database.remoteKeyDao()
     }
 }

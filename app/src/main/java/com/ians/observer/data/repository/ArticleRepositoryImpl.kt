@@ -6,17 +6,21 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import com.ians.observer.data.local.dao.NewsDatabase
+import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.toArticle
-import com.ians.observer.data.local.entity.toEntity
+//import com.ians.observer.data.local.entity.toArticle
 import com.ians.observer.data.paging.ArticleRemoteMediatorFactory
 import com.ians.observer.data.paging.ArticleSearchPagingSource
-import com.ians.observer.data.remote.api.NewsApi
-import com.ians.observer.data.remote.dto.toArticle
+import com.ians.observer.data.paging.FeedKeyFactory
+import com.ians.observer.data.paging.model.PagingSourceSpec
+import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.domain.model.Article
+import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.repository.ArticleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -24,77 +28,52 @@ import javax.inject.Singleton
 
 @Singleton
 class ArticleRepositoryImpl @Inject constructor(
-    private val newsApi: NewsApi,
+    private val newsProvider: NewsProvider,
     private val database: NewsDatabase,
     private val remoteMediatorFactory: ArticleRemoteMediatorFactory
 ) : ArticleRepository {
 
-    override fun getTopHeadlines(
-        country: String,
-        category: String?
-    ): Flow<Result<List<Article>>> = flow {
-
-        val cachedArticles = database.articleDao().getAllArticles()
-            .map { entities -> entities.map { it.toArticle() } }
-            .first()
-
-        if (cachedArticles.isNotEmpty()) {
-            emit(Result.success(cachedArticles))
-        }
-
-        try {
-            val response = newsApi.getHeadlines(
-                country = country,
-                category = category
-            )
-
-            if (response.status == "ok") {
-
-                val freshArticles = response.articles.map {
-                    it.toArticle(
-                        isFavorite(it.url),
-                        page = 0,
-                    )
-                }
-                database.articleDao().deleteNonFavorites()
-
-                database.articleDao().insertArticles(
-                    freshArticles.map { it.toEntity() }
-                )
-
-                emit(Result.success(freshArticles))
-            } else {
-                emit(Result.failure(Exception("API error: ${response.status}")))
-            }
-        } catch (e: Exception) {
-            print(e.message)
-
-            val cachedData = database.articleDao().getAllArticles()
-                .map { it.map { entity -> entity.toArticle() } }
-                .first()
-
-            if (cachedData.isEmpty()) {
-                emit(Result.failure(e))
-            }
-        }
+    companion object {
+        private const val PAGE_SIZE = 10
+        private const val INITIAL_LOAD_SIZE = 10
+        private const val PREFETCH_DISTANCE = 4
     }
 
     @OptIn(ExperimentalPagingApi::class)
     override fun getTopHeadlinesPaging(
-        country: String,
-        category: String?
+        category: Category?,
+        country: NewsCountry,
+        language: NewsLanguage,
+        syncInterval: Long,
     ): Flow<PagingData<Article>> = flow {
-        val remoteMediator = remoteMediatorFactory.create(category)
+        val feedKey = FeedKeyFactory.create(
+            PagingSourceSpec.Feed(
+                country = country,
+                language = language,
+                category = category
+            )
+        )
+
+        val remoteMediator = remoteMediatorFactory.create(
+            category = category,
+            country = country,
+            language = language,
+            syncInterval = syncInterval
+        )
 
         val pager = Pager(
             config = PagingConfig(
-                pageSize = 20,
+                pageSize = PAGE_SIZE,
+                initialLoadSize = INITIAL_LOAD_SIZE,
                 enablePlaceholders = false,
-                initialLoadSize = 20
+                prefetchDistance = PREFETCH_DISTANCE
             ),
             remoteMediator = remoteMediator,
             pagingSourceFactory = {
-                database.articlePagingDao().pagingSource(category = category)
+                database.articlePagingDao().pagingSource(
+                    feedKey = feedKey,
+                    providerId = newsProvider.id.value
+                )
             }
         )
 
@@ -105,94 +84,81 @@ class ArticleRepositoryImpl @Inject constructor(
         })
     }
 
-    override fun searchNews(
-        query: String,
-        language: String?
-    ): Flow<Result<List<Article>>> = flow {
-
-        val cachedResults = database.articleDao().searchArticles(query)
-            .map { entities -> entities.map { it.toArticle() } }
-            .first()
-
-        if (cachedResults.isNotEmpty()) {
-            emit(Result.success(cachedResults))
-        }
-
-        try {
-            val response = newsApi.searchNews(
-                query = query,
-                language = language
-            )
-
-            if (response.status == "ok") {
-                val freshArticles = response.articles.map {
-                    it.toArticle(
-                        isFavorite(it.url),
-                        page = 0,
-                    )
-                }
-
-                database.articleDao().insertArticles(
-                    freshArticles.map { it.toEntity() }
-                )
-
-                emit(Result.success(freshArticles))
-            } else {
-                emit(Result.failure(Exception("Search failed. API returned: \${response.status}")))
-            }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
-
-    }
-
     override fun searchNewsPaging(
         query: String,
-        language: String?,
+        language: NewsLanguage?,
+        country: NewsCountry?,
+        category: Category?
     ): Flow<PagingData<Article>> = Pager(
         config = PagingConfig(
-            pageSize = 20,
+            pageSize = PAGE_SIZE,
+            initialLoadSize = INITIAL_LOAD_SIZE,
             enablePlaceholders = false,
-            initialLoadSize = 20
+            prefetchDistance = PREFETCH_DISTANCE
         ),
         pagingSourceFactory = {
             ArticleSearchPagingSource(
-                api = newsApi,
+                newsProvider = newsProvider,
                 database = database,
                 query = query,
-                language = language
+                language = language,
+                country = country,
+                category = category
             )
         }
     ).flow
 
     override fun getFavoriteArticles(): Flow<List<Article>> {
         return database.articleDao().getFavoriteArticles()
-            .map { entities -> entities.map { it.toArticle() } }
+            .map { entities ->
+                entities.map {
+                    it.toArticle()
+                }
+            }
     }
 
-    override fun getFavoriteArticlesForCategory(category: String): Flow<List<Article>> {
-        return database.articleDao().getFavoriteArticlesForCategory(category)
-            .map { entities -> entities.map { it.toArticle() } }
+    override fun observeFavoriteUrls(): Flow<Set<String>> {
+        return database.articleDao().getFavoriteArticlesUrls()
+            .map { list ->
+                list.toSet()
+            }
     }
 
-    override suspend fun toggleFavorite(article: Article) {
-        if (database.articleDao().getArticleByUrl(article.url) == null) {
-            database.articleDao().insertArticle(article.toEntity())
-        }
-
-        database.articleDao().toggleFavorite(article.url)
+    override fun getFavoriteArticlesForCategory(category: Category): Flow<List<Article>> {
+        return database.articleDao().getFavoriteArticlesForCategory(category.value)
+            .map { entities ->
+                entities.map {
+                    it.toArticle()
+                }
+            }
     }
 
     override fun getFavoriteCategories(): Flow<List<String>> {
         return database.articleDao().getFavoriteCategories()
     }
 
-    override suspend fun isFavorite(articleUrl: String): Boolean {
-        return database.articleDao().isFavorite(articleUrl)
+    override suspend fun addToFavorites(
+        article: Article,
+        category: Category?,
+    ) {
+        database.articleDao().addToFavorites(
+            article = ArticleEntity(
+                url = article.originalUrl,
+                publisherId = article.publisher.id,
+                publisherName = article.publisher.name,
+                author = article.author,
+                title = article.title,
+                description = article.description,
+                imageUrl = article.imageUrl,
+                publishedAt = article.publishedAt,
+                content = article.content
+            ),
+            category = category?.value,
+            providerId = newsProvider.id.value,
+        )
     }
 
-    override suspend fun getArticleByUrl(articleUrl: String): Article? {
-        return database.articleDao().getArticleByUrl(articleUrl)?.toArticle()
+    override suspend fun removeFromFavorites(url: String) {
+        database.articleDao().remoteFromFavorites(url)
     }
-
 }

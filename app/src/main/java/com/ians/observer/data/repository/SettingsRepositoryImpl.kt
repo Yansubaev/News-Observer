@@ -26,22 +26,9 @@ class SettingsRepositoryImpl @Inject constructor(
     private val dataStore = context.dataStore
 
     private object PreferencesKeys {
-        val LAST_SYNC_TIME = longPreferencesKey("last_sync_time")
         val COUNTRY = stringPreferencesKey("country")
         val LANGUAGE = stringPreferencesKey("language")
         val SEARCH_HISTORY = stringPreferencesKey("search_history")
-    }
-
-    override suspend fun getLastSyncTime(): Long {
-        return dataStore.data.map { prefs ->
-            prefs[PreferencesKeys.LAST_SYNC_TIME] ?: 0L
-        }.first()
-    }
-
-    override suspend fun saveLastSyncTime(time: Long) {
-        dataStore.edit { prefs ->
-            prefs[PreferencesKeys.LAST_SYNC_TIME] = time
-        }
     }
 
     override suspend fun getSyncInterval(): Long {

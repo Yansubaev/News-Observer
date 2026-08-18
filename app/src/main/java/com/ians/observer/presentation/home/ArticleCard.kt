@@ -39,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
+import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.domain.model.Publisher
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,12 +52,21 @@ import java.util.Locale
 private fun ArticleCardPreview() {
     ArticleCard(
         Article(
-            "", 0, "", "BBC", "Denis Ians", "Preview article",
+            id = "",
+            publisher = Publisher(
+                name = "BBC",
+                id = "bbc"
+            ),
+            author = "Denis Ians",
+            title = "Preview article",
             description = "This is a preview article",
-            url = "https://ichef.bbci.co.uk/images/ic/1920x1080/p0nhlk0l.jpg.webp",
+            originalUrl = "https://ichef.bbci.co.uk/images/ic/1920x1080/p0nhlk0l.jpg.webp",
             publishedAt = 0,
             content = "",
-            imageUrl = ""
+            imageUrl = "",
+            isFavorite = true,
+            category = Category.TECHNOLOGY,
+            providerId = ProviderId.NEWS_API
         )
     ) { }
 }
@@ -97,7 +109,7 @@ fun ArticleCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = article.sourceName,
+                    text = article.publisher.name,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

@@ -77,7 +77,7 @@ fun FavoritesScreen(
                 SuccessContent(
                     articles = articles,
                     onFavoriteClick = { article ->
-                        viewModel.toggleFavorite(article)
+                        viewModel.removeFromFavorites(article)
 //                        articles.refresh()
                     }
                 )

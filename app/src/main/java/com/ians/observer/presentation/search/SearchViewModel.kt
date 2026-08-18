@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.map
 import com.ians.observer.domain.model.Article
+import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,16 +16,13 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.emptyList
@@ -51,19 +51,30 @@ class SearchViewModel @Inject constructor(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val searchResultArticles = query
+    private val searchPages = query
         .debounce(300)
-        .distinctUntilChanged()
         .flatMapLatest { q ->
             if (q.isBlank()) flowOf(PagingData.empty())
-            else articleRepository.searchNewsPaging(q, settingRepository.getLanguagePreference())
+            else articleRepository.searchNewsPaging(
+                query = q,
+                language = NewsLanguage.fromCode(settingRepository.getLanguagePreference()),
+                country = NewsCountry.fromCode(settingRepository.getCountryPreference()),
+                category = null
+            )
         }
         .cachedIn(viewModelScope)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = PagingData.empty()
-        )
+
+    val searchResultArticles = combine(
+        searchPages,
+        articleRepository.observeFavoriteUrls()
+    ) { pagingData, favoriteUrls ->
+        pagingData.map { article ->
+            article.copy(
+                isFavorite = article.originalUrl in favoriteUrls
+            )
+        }
+    }
+        .cachedIn(viewModelScope)
 
     fun setQueryText(query: String) {
 
@@ -81,7 +92,11 @@ class SearchViewModel @Inject constructor(
         settingRepository.saveSearchQuery(query)
     }
 
-    fun toggleFavorite(article: Article) = viewModelScope.launch {
-        articleRepository.toggleFavorite(article)
+    fun setFavorite(article: Article, shouldBeFavorite: Boolean) = viewModelScope.launch {
+        if (shouldBeFavorite) {
+            articleRepository.addToFavorites(article, null)
+        } else {
+            articleRepository.removeFromFavorites(article.originalUrl)
+        }
     }
 }

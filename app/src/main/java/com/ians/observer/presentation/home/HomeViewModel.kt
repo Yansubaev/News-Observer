@@ -6,6 +6,8 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,8 +40,10 @@ class HomeViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { category ->
             articleRepository.getTopHeadlinesPaging(
-                country = settingsRepository.getCountryPreference(),
-                category = category.value
+                category = category,
+                country = NewsCountry.fromCode(settingsRepository.getCountryPreference()),
+                language = NewsLanguage.fromCode(settingsRepository.getLanguagePreference()),
+                syncInterval = settingsRepository.getSyncInterval()
             )
         }
         .cachedIn(viewModelScope)
@@ -54,6 +58,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun toggleFavorite(article: Article) = viewModelScope.launch {
-        articleRepository.toggleFavorite(article)
+        if (article.isFavorite) {
+            articleRepository.removeFromFavorites(article.originalUrl)
+        } else {
+            articleRepository.addToFavorites(article, _selectedCategoryState.value)
+        }
     }
 }

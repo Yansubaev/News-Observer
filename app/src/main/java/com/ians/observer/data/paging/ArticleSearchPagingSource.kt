@@ -1,60 +1,60 @@
 package com.ians.observer.data.paging
 
-import androidx.paging.LoadType
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.ians.observer.data.local.dao.NewsDatabase
-import com.ians.observer.data.remote.api.NewsApi
-import com.ians.observer.data.remote.dto.toArticle
+import com.ians.observer.data.remote.newsapi.toRemoteArticle
+import com.ians.observer.data.remote.provider.NewsProvider
+import com.ians.observer.data.remote.provider.model.PageToken
+import com.ians.observer.data.remote.provider.model.SearchRequest
+import com.ians.observer.data.remote.provider.model.toArticle
 import com.ians.observer.domain.model.Article
-import com.ians.observer.ui.theme.errorDark
+import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.NewsLanguage
+import com.ians.observer.domain.model.NewsCountry
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 
 class ArticleSearchPagingSource(
-    private val api: NewsApi,
+    private val newsProvider: NewsProvider,
     private val database: NewsDatabase,
     private val query: String,
-    private val language: String?
+    private val language: NewsLanguage?,
+    private val country: NewsCountry?,
+    private val category: Category?
 
-) : PagingSource<Int, Article>() {
+) : PagingSource<PageToken, Article>() {
     private val articleDao = database.articleDao()
 
-    override fun getRefreshKey(state: PagingState<Int, Article>): Int? {
-        return state.anchorPosition?.let { position ->
-            state.closestPageToPosition(position)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(position)?.nextKey?.minus(1)
-        }
-    }
+    override fun getRefreshKey(state: PagingState<PageToken, Article>): PageToken? = null
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Article> {
-        val page = params.key ?: 1
-
+    override suspend fun load(params: LoadParams<PageToken>): LoadResult<PageToken, Article> {
         return try {
-            val response = api.searchNews(
-                query = query,
-                page = page,
-                pageSize = params.loadSize,
-                language = language
+            val providerPage = newsProvider.search(
+                request = SearchRequest(
+                    query = query,
+                    country = country,
+                    language = language,
+                    category = category
+                ),
+                pageToken = params.key
             )
-
-            if (response.status != "ok") {
-                return LoadResult.Error(Exception("API error: ${response.status}"))
-            }
 
             val existingFavoriteUrls = articleDao.getFavoriteArticlesUrls().first()
 
-            val articles = response.articles.map {
+            val articles = providerPage.articles.map {
                 it.toArticle(
-                    page = page,
-                    isFavorite = existingFavoriteUrls.contains(it.url)
+                    isFavorite = existingFavoriteUrls.contains(it.originalUrl)
                 )
             }
 
             LoadResult.Page(
                 data = articles,
-                prevKey = if (page == 1) null else page - 1,
-                nextKey = if (articles.isEmpty()) null else page + 1
+                prevKey = null,
+                nextKey = providerPage.nextPageToken
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LoadResult.Error(e)
         }

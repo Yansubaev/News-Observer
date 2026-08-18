@@ -2,7 +2,6 @@ package com.ians.observer.presentation.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ians.observer.data.local.entity.categoryFromString
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.repository.ArticleRepository
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -30,7 +28,7 @@ class FavoritesViewModel @Inject constructor(
 
     val categories: StateFlow<List<Category>> =
         articleRepository.getFavoriteCategories().map { strings ->
-            listOf(Category.ALL) + strings.map { categoryFromString(it) ?: Category.GENERAL }
+            listOf(Category.ALL) + strings.map { Category.fromValue(it) }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -42,7 +40,7 @@ class FavoritesViewModel @Inject constructor(
         if (category == Category.ALL) {
             articleRepository.getFavoriteArticles()
         } else {
-            articleRepository.getFavoriteArticlesForCategory(category.value)
+            articleRepository.getFavoriteArticlesForCategory(category)
         }
     }
 
@@ -50,8 +48,8 @@ class FavoritesViewModel @Inject constructor(
         _selectedCategoryState.value = category
     }
 
-    fun toggleFavorite(article: Article) = viewModelScope.launch {
-        articleRepository.toggleFavorite(article)
+    fun removeFromFavorites(article: Article) = viewModelScope.launch {
+        articleRepository.removeFromFavorites(article.originalUrl)
     }
 
 }

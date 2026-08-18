@@ -1,7 +1,6 @@
 package com.ians.observer.presentation.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,12 +16,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
 import com.ians.observer.R
 import com.ians.observer.domain.model.NewsLanguage
-import com.ians.observer.domain.model.NewsRegion
-import com.ians.observer.domain.model.Source
+import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.presentation.navigation.SettingsScreen
 
 @Composable
@@ -142,10 +140,10 @@ private fun SourcesSettingsScreenUI(
     SettingsListView(
         listOf(
             SettingsItem.Checkbox(
-                title = Source.NEWS_API.nameRes,
+                title = ProviderId.NEWS_API.nameRes,
                 checked = true,
                 onCheckedChange = {
-                    onSourceSelected(Source.NEWS_API.value, it)
+                    onSourceSelected(ProviderId.NEWS_API.value, it)
                 },
             )
         ), modifier = mod
@@ -176,15 +174,15 @@ private fun LanguageSettingsScreenUI(
 
 @Composable
 private fun RegionSettingsScreenUI(
-    selectedRegion: NewsRegion,
-    onRegionSelected: (NewsRegion) -> Unit = {}
+    selectedRegion: NewsCountry,
+    onRegionSelected: (NewsCountry) -> Unit = {}
 ) {
     val mod = Modifier
         .fillMaxWidth()
         .height(68.dp)
 
     SettingsListView(
-        NewsRegion.entries.map {
+        NewsCountry.entries.map {
             SettingsItem.Radiobutton(
                 title = it.titleRes,
                 selected = it == selectedRegion,

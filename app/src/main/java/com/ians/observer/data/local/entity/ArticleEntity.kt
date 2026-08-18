@@ -10,14 +10,11 @@ data class ArticleEntity(
     @ColumnInfo(name = "url")
     val url: String,
 
-    @ColumnInfo(name = "page")
-    val page: Int,
+    @ColumnInfo(name = "publisher_id")
+    val publisherId: String?,
 
-    @ColumnInfo(name = "source_id")
-    val sourceId: String?,
-
-    @ColumnInfo(name = "source_name")
-    val sourceName: String,
+    @ColumnInfo(name = "publisher_name")
+    val publisherName: String,
 
     @ColumnInfo(name = "author")
     val author: String?,
@@ -36,13 +33,4 @@ data class ArticleEntity(
 
     @ColumnInfo(name = "content")
     val content: String?,
-
-    @ColumnInfo(name = "is_favorite")
-    val isFavorite: Boolean = false,
-
-    @ColumnInfo(name = "saved_at")
-    val savedAt: Long = System.currentTimeMillis(),
-
-    @ColumnInfo(name = "category")
-    val category: String? = null
 )

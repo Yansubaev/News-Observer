@@ -1,8 +1,8 @@
-package com.ians.observer.data.remote.dto
+package com.ians.observer.data.remote.newsapi.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class SourceDto(
+data class NewsApiSourceDto(
     @SerializedName("id")
     val id: String?,
 

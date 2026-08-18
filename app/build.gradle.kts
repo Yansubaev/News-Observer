@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,30 @@ plugins {
     id("com.google.dagger.hilt.android") version "2.57.2"
     alias(libs.plugins.ksp)
 }
+
+val localPropertiesFile = rootProject.file("local.properties")
+
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { inputStream ->
+            load(inputStream)
+        }
+    }
+}
+
+val newsApiKey = localProperties.getProperty("NEWS_API_KEY")
+    ?: System.getenv("NEWS_API_KEY")
+    ?: error(
+        "NEWS_API_KEY is not configured. " +
+                "Add it to local.properties or define the NEWS_API_KEY environment variable."
+    )
+
+val newsDataApiKey = localProperties.getProperty("NEWS_DATA_API_KEY")
+    ?: System.getenv("NEWS_DATA_API_KEY")
+    ?: error(
+        "NEWS_DATA_API_KEY is not configured. " +
+                "Add it to local.properties or define the NEWS_DATA_API_KEY environment variable."
+    )
 
 android {
     namespace = "com.ians.observer"
@@ -22,7 +48,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // NewsAPI
-        buildConfigField("String", "NEWS_API_KEY", "\"f94c188002714b86ba27c3787971d5e7\"")
+        buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
+        buildConfigField("String", "NEWS_DATA_API_KEY", "\"$newsDataApiKey\"")
     }
 
     buildTypes {

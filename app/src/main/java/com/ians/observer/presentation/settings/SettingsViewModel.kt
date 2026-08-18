@@ -3,7 +3,7 @@ package com.ians.observer.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ians.observer.domain.model.NewsLanguage
-import com.ians.observer.domain.model.NewsRegion
+import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,8 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingRepository,
 ) : ViewModel() {
 
-    private val _selectedRegionState = MutableStateFlow(NewsRegion.US)
-    val selectedRegionState: StateFlow<NewsRegion> = _selectedRegionState.asStateFlow()
+    private val _selectedRegionState = MutableStateFlow(NewsCountry.US)
+    val selectedRegionState: StateFlow<NewsCountry> = _selectedRegionState.asStateFlow()
 
     private val _selectedLanguageState = MutableStateFlow(NewsLanguage.EN)
     val selectedLanguageState: StateFlow<NewsLanguage> = _selectedLanguageState.asStateFlow()
@@ -30,7 +30,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun selectRegion(region: NewsRegion) {
+    fun selectRegion(region: NewsCountry) {
         viewModelScope.launch {
             settingsRepository.setCountryPreference(region.code)
             actualizeSelectedRegion()
@@ -57,9 +57,9 @@ class SettingsViewModel @Inject constructor(
     private suspend fun actualizeSelectedRegion() {
         val setting = settingsRepository.getCountryPreference()
         try {
-            _selectedRegionState.value = NewsRegion.fromCode(setting)
+            _selectedRegionState.value = NewsCountry.fromCode(setting)
         } catch (e: IllegalArgumentException) {
-            _selectedRegionState.value = NewsRegion.US
+            _selectedRegionState.value = NewsCountry.US
             println(e)
         }
     }

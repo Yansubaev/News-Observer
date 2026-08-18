@@ -7,55 +7,66 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.ians.observer.data.local.entity.ArticleEntity
+import com.ians.observer.data.local.entity.FavoriteEntity
+import com.ians.observer.data.local.projection.FavoriteArticleProjection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArticleDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertArticle(article: ArticleEntity)
+    @Upsert
+    suspend fun upsertArticle(article: ArticleEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertArticles(articles: List<ArticleEntity>)
+    @Upsert
+    suspend fun upsertArticles(articles: List<ArticleEntity>)
 
-    @Transaction
-    suspend fun insertOrUpdateArticles(articles: List<ArticleEntity>) {
-        articles.forEach { article ->
-            val existing = getArticleByUrl(article.url)
-
-            if (existing != null) {
-                updateArticle(
-                    article.copy(
-                        isFavorite = existing.isFavorite
-                    )
-                )
-            } else {
-                insertArticle(article)
-            }
-        }
-    }
-
-    @Query("SELECT * FROM articles ORDER BY published_at DESC")
+    @Query("SELECT * FROM articles ORDER BY published_at DESC, url DESC")
     fun getAllArticles(): Flow<List<ArticleEntity>>
 
-    @Query("SELECT * FROM articles WHERE page = :page ORDER BY published_at DESC")
-    fun getArticlesByPage(page: Int): List<ArticleEntity>
+    @Query(
+        """
+        SELECT 
+            articles.*,
+            favorites.source_provider_id AS provider_id,
+            favorites.category AS favorite_category
+        FROM articles
+        INNER JOIN favorites
+            ON favorites.article_url = articles.url
+        ORDER BY favorites.saved_at DESC
+    """
+    )
+    fun getFavoriteArticles(): Flow<List<FavoriteArticleProjection>>
 
-    @Query("SELECT * FROM articles WHERE is_favorite = 1 ORDER BY saved_at")
-    fun getFavoriteArticles(): Flow<List<ArticleEntity>>
+    @Query(
+        """
+        SELECT * FROM favorites
+        WHERE article_url = :url LIMIT 1
+    """
+    )
+    suspend fun getFavoriteByUrl(url: String): FavoriteEntity?
 
-    @Query("SELECT * FROM articles WHERE is_favorite = 1 AND category = :category")
-    fun getFavoriteArticlesForCategory(category: String): Flow<List<ArticleEntity>>
+    @Query(
+        """
+        SELECT
+            articles.*,
+            favorites.source_provider_id AS provider_id,
+            favorites.category AS favorite_category
+        FROM articles
+        INNER JOIN favorites
+            ON favorites.article_url = articles.url 
+        WHERE favorites.category = :category
+        ORDER BY favorites.saved_at DESC
+    """
+    )
+    fun getFavoriteArticlesForCategory(category: String): Flow<List<FavoriteArticleProjection>>
 
-    @Query("SELECT url FROM ARTICLES WHERE is_favorite = 1 ORDER BY saved_at DESC")
+    @Query("SELECT article_url FROM favorites")
     fun getFavoriteArticlesUrls(): Flow<List<String>>
 
     @Query("SELECT * FROM articles WHERE url = :url")
     suspend fun getArticleByUrl(url: String): ArticleEntity?
-
-    @Query("SELECT MAX(page) FROM articles")
-    suspend fun getLastPage(): Int?
 
     @Query(
         """
@@ -67,55 +78,82 @@ interface ArticleDao {
     )
     fun searchArticles(query: String): Flow<List<ArticleEntity>>
 
-    @Update
-    suspend fun updateArticle(article: ArticleEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFavorite(favorite: FavoriteEntity)
 
     @Query(
         """
-        UPDATE articles
-        SET is_favorite = CASE
-            WHEN is_favorite = 1 THEN 0
-            ELSE 1
-        END
-        WHERE url = :url
+        DELETE FROM favorites
+        WHERE article_url = :url
     """
     )
-    suspend fun toggleFavorite(url: String)
+    suspend fun deleteFavoriteByUrl(url: String)
+
+    @Transaction
+    suspend fun addToFavorites(
+        article: ArticleEntity,
+        category: String?,
+        providerId: String,
+    ) {
+        upsertArticle(article)
+
+        insertFavorite(
+            FavoriteEntity(
+                articleUrl = article.url,
+                savedAt = System.currentTimeMillis(),
+                category = category,
+                sourceProviderId = providerId
+            )
+        )
+    }
+
+    @Query("DELETE FROM favorites WHERE article_url = :url")
+    suspend fun remoteFromFavorites(url: String)
 
     @Delete
     suspend fun deleteArticle(article: ArticleEntity)
 
-    @Query("DELETE FROM articles WHERE page = :page")
-    suspend fun deleteByPage(page: Int)
-
     @Query("DELETE FROM articles WHERE url = :url")
     suspend fun deleteByUrl(url: String)
 
-    @Query("DELETE FROM articles WHERE is_favorite = 0")
-    suspend fun deleteNonFavorites()
+    @Query(
+        """
+        DELETE FROM articles
+        WHERE NOT EXISTS(
+            SELECT 1 FROM favorites
+            WHERE favorites.article_url = articles.url
+        )
+        AND NOT EXISTS(
+            SELECT 1 FROM article_feed_cross_refs
+            WHERE article_feed_cross_refs.article_url = articles.url
+        )
+    """
+    )
+    suspend fun deleteOrphanedArticles()
 
     @Query("DELETE FROM articles")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM articles WHERE saved_at < :timestamp AND is_favorite = 0")
-    suspend fun deleteOldArticles(timestamp: Long)
-
-    @Query("DELETE FROM articles WHERE page = :page AND is_favorite = 0")
-    suspend fun deleteNonFavoritesByPage(page: Int)
-
-    @Query("DELETE FROM articles WHERE category = :category AND is_favorite = 0")
-    suspend fun deleteNonFavoritesByCategory(category: String?)
-
-    @Query("SELECT COUNT(*) FROM articles")
-    suspend fun getArticleCount(): Int
-
-    @Query("SELECT COUNT(*) FROM articles WHERE is_favorite = 1")
+    @Query("SELECT COUNT(*) FROM favorites")
     suspend fun getFavoriteCount(): Int
 
-    @Query("SELECT EXISTS(SELECT 1 FROM articles WHERE url = :url AND is_favorite = 1)")
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT 1 FROM favorites 
+            WHERE article_url = :url
+        ) 
+    """
+    )
     suspend fun isFavorite(url: String): Boolean
 
-    @Query("SELECT DISTINCT category FROM articles WHERE is_favorite = 1")
+    @Query(
+        """
+        SELECT DISTINCT category FROM favorites
+        WHERE category IS NOT NULL
+        ORDER BY category
+    """
+    )
     fun getFavoriteCategories(): Flow<List<String>>
 }
 

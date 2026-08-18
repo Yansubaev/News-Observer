@@ -3,7 +3,7 @@ package com.ians.observer.domain.model
 import androidx.annotation.StringRes
 import com.ians.observer.R
 
-enum class NewsRegion(
+enum class NewsCountry(
     val code: String,
     @get:StringRes val titleRes: Int,
 ) {
@@ -63,7 +63,7 @@ enum class NewsRegion(
     VE("ve", R.string.news_region_ve);
 
     companion object {
-        fun fromCode(code: String): NewsRegion =
+        fun fromCode(code: String): NewsCountry =
             entries.firstOrNull { it.code.equals(code, ignoreCase = true) }
                 ?: throw IllegalArgumentException("Unknown NewsRegion code: $code")
     }

@@ -1,8 +1,8 @@
-package com.ians.observer.data.remote.dto
+package com.ians.observer.data.remote.newsapi.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class NewsResponse(
+data class NewsApiResponse(
     @SerializedName("status")
     val status: String,
 
@@ -10,6 +10,6 @@ data class NewsResponse(
     val totalResults: Int,
 
     @SerializedName("articles")
-    val articles: List<ArticleDto>
+    val articles: List<NewsApiArticleDto>
 )
 

@@ -42,6 +42,8 @@ import androidx.paging.compose.itemKey
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.domain.model.Publisher
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
@@ -175,7 +177,7 @@ fun SuccessContent(
         ) {
             items(
                 count = articles.itemCount,
-                key = articles.itemKey { article -> article.url }
+                key = articles.itemKey { article -> article.originalUrl }
             ) { index ->
                 val article = articles[index]
 
@@ -245,47 +247,53 @@ fun HomeScreenPreview() {
     val fakeArticles = listOf(
         Article(
             id = "1",
-            page = 1,
-            sourceId = "source-1",
-            sourceName = "Observer Daily",
+            publisher = Publisher(
+                name = "Labubu",
+                id = "labubu"
+            ),
             author = "Ada Lovelace",
             title = "Breaking News One",
             description = "First fake article for preview",
-            url = "https://example.com/article-1",
+            originalUrl = "https://example.com/article-1",
             imageUrl = null,
             publishedAt = 1710000000000,
             content = "Preview content one",
             isFavorite = false,
+            providerId = ProviderId.NEWS_API,
             category = Category.GENERAL
         ),
         Article(
             id = "2",
-            page = 1,
-            sourceId = "source-2",
-            sourceName = "Observer Weekly",
+            publisher = Publisher(
+                name = "Labubu",
+                id = "labubu"
+            ),
             author = "Grace Hopper",
             title = "Breaking News Two",
             description = "Second fake article for preview",
-            url = "https://example.com/article-2",
+            originalUrl = "https://example.com/article-2",
             imageUrl = null,
             publishedAt = 1710003600000,
             content = "Preview content two",
             isFavorite = true,
+            providerId = ProviderId.NEWS_API,
             category = Category.SPORTS
         ),
         Article(
             id = "3",
-            page = 1,
-            sourceId = "source-3",
-            sourceName = "Observer Tech",
+            publisher = Publisher(
+                name = "Labubu",
+                id = "labubu"
+            ),
             author = "Alan Turing",
             title = "Breaking News Three",
             description = "Third fake article for preview",
-            url = "https://example.com/article-3",
+            originalUrl = "https://example.com/article-3",
             imageUrl = null,
             publishedAt = 1710007200000,
             content = "Preview content three",
             isFavorite = false,
+            providerId = ProviderId.NEWS_API,
             category = Category.TECHNOLOGY
         )
     )

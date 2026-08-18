@@ -81,7 +81,7 @@ fun SettingsItemToggleViewPreview() {
 fun SettingsItemCheckboxViewPreview() {
     SettingsItemView(
         SettingsItem.Checkbox(
-            R.string.source_newsapi,
+            R.string.provider_news_api,
             true,
             onCheckedChange = {},
         )

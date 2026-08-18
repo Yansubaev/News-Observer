@@ -1,6 +1,5 @@
 package com.ians.observer.data.paging
 
-import android.content.SharedPreferences
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -8,51 +7,69 @@ import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.ArticleEntity
-import com.ians.observer.data.local.entity.toEntity
-import com.ians.observer.data.remote.api.NewsApi
-import com.ians.observer.data.remote.dto.toArticle
+import com.ians.observer.data.local.entity.ArticleFeedCrossRefEntity
+import com.ians.observer.data.local.entity.FeedEntity
+import com.ians.observer.data.local.entity.RemoteKeyEntity
+import com.ians.observer.data.local.projection.FeedArticleProjection
+import com.ians.observer.data.paging.model.PagingSourceSpec
+import com.ians.observer.data.remote.provider.NewsProvider
+import com.ians.observer.data.remote.provider.model.FeedRequest
+import com.ians.observer.data.remote.provider.model.PageToken
+import com.ians.observer.data.remote.provider.model.toEntity
+import com.ians.observer.domain.model.Category
+import com.ians.observer.domain.model.NewsLanguage
+import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.repository.SettingRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import java.text.SimpleDateFormat
-import java.util.Locale
 import javax.inject.Inject
 import kotlin.collections.emptyList
 
 class ArticleRemoteMediatorFactory @Inject constructor(
-    private val newsApi: NewsApi,
+    private val newsProvider: NewsProvider,
     private val database: NewsDatabase,
-    private val settingRepository: SettingRepository
 ) {
-    suspend fun create(category: String? = null): ArticleRemoteMediator {
-        return ArticleRemoteMediator(
-            newsApi = newsApi,
-            database = database,
-            country = settingRepository.getCountryPreference(),
-            category = category,
-            lastSyncTime = settingRepository.getLastSyncTime(),
-            syncInterval = settingRepository.getSyncInterval()
-        ) {
-            settingRepository.saveLastSyncTime(it)
-        }
-    }
+    fun create(
+        category: Category? = null,
+        country: NewsCountry = NewsCountry.US,
+        language: NewsLanguage = NewsLanguage.EN,
+        syncInterval: Long = 10 * 60 * 1000
+    ): ArticleRemoteMediator = ArticleRemoteMediator(
+        newsProvider = newsProvider,
+        database = database,
+        country = country,
+        language = language,
+        category = category,
+        syncInterval = syncInterval,
+    )
 }
 
 @OptIn(ExperimentalPagingApi::class)
 class ArticleRemoteMediator(
-    private val newsApi: NewsApi,
+    private val newsProvider: NewsProvider,
     private val database: NewsDatabase,
-    private val country: String = "us",
-    private val category: String? = null,
-    private val lastSyncTime: Long = 0L,
+    private val country: NewsCountry = NewsCountry.US,
+    private val language: NewsLanguage = NewsLanguage.EN,
+    private val category: Category? = null,
     private val syncInterval: Long = 10 * 60 * 1000, // 10 minutes
-    private val onSyncSuccess: suspend (Long) -> Unit,
-) : RemoteMediator<Int, ArticleEntity>() {
+) : RemoteMediator<Int, FeedArticleProjection>() {
 
     private val articleDao = database.articleDao()
+    private val remoteKeyDao = database.remoteKeyDao()
+    private val articleFeedCrossRefDao = database.articleFeedCrossRefDao()
+    private val feedDao = database.feedDao()
 
     override suspend fun initialize(): InitializeAction {
         val currentTime = System.currentTimeMillis()
+        val feedKey = FeedKeyFactory.create(
+            PagingSourceSpec.Feed(
+                country = country,
+                language = language,
+                category = category
+            )
+        )
+        val remoteKey = remoteKeyDao.get(feedKey, newsProvider.id.value)
+        val lastSyncTime = remoteKey?.updatedAt ?: 0
 
         return if (currentTime - lastSyncTime > syncInterval) {
             InitializeAction.LAUNCH_INITIAL_REFRESH
@@ -62,76 +79,105 @@ class ArticleRemoteMediator(
     }
 
     override suspend fun load(
-        loadType: LoadType, state: PagingState<Int, ArticleEntity>
+        loadType: LoadType, state: PagingState<Int, FeedArticleProjection>
     ): MediatorResult {
         return try {
-            val page = when (loadType) {
-                LoadType.REFRESH -> {
-                    1
-                }
-
-                LoadType.PREPEND -> {
-                    return MediatorResult.Success(endOfPaginationReached = true)
-                }
-
-                LoadType.APPEND -> {
-                    val lastItem = state.lastItemOrNull()
-
-                    if (lastItem == null) {
-                        1
-                    } else {
-                        lastItem.page + 1
-                    }
-                }
-            }
-
-            val response = newsApi.getHeadlines(
-                country = country,
-                category = category,
-                page = page,
-                pageSize = state.config.pageSize
-            )
-
-            val existingFavoriteUrls = if (loadType == LoadType.REFRESH) {
-                articleDao.getFavoriteArticlesUrls().first()
-            } else {
-                emptyList()
-            }
-
-            val articles = response.articles.map { dto ->
-                val url = dto.url
-                val isFavorite = url in existingFavoriteUrls
-
-                dto.toArticle(page = page).toEntity().copy(
-                    page = page,
-                    isFavorite = isFavorite,
+            val feedKey = FeedKeyFactory.create(
+                PagingSourceSpec.Feed(
+                    country = country,
+                    language = language,
                     category = category
                 )
+            )
+            val pageToken = when (loadType) {
+                LoadType.APPEND -> {
+                    val remoteKey = remoteKeyDao.get(
+                        feedKey = feedKey, providerId = newsProvider.id.value
+                    )
+
+                    if (remoteKey?.endReached == true) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
+
+                    remoteKey?.nextPageToken?.let(::PageToken)
+                }
+
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
+            }
+
+            val providerPage = newsProvider.loadFeed(
+                request = FeedRequest(
+                    country = country, language = language, category = category
+                ),
+                pageToken = pageToken
+            )
+
+            val articleEntities = providerPage.articles.map { article ->
+
+                article.toEntity()
             }
 
             database.withTransaction {
-                when (loadType) {
-                    LoadType.REFRESH -> {
-                        articleDao.deleteNonFavoritesByCategory(category)
-                    }
-
-                    LoadType.APPEND -> {
-
-                    }
-
-                    else -> {}
+                if (loadType == LoadType.REFRESH) {
+                    articleFeedCrossRefDao.deleteByFeed(
+                        feedKey = feedKey,
+                        providerId = newsProvider.id.value
+                    )
+                    articleDao.deleteOrphanedArticles()
                 }
 
-                articleDao.insertOrUpdateArticles(articles)
+                articleDao.upsertArticles(articleEntities)
+
+                val startPosition = if (loadType == LoadType.REFRESH) {
+                    0
+                } else {
+                    articleFeedCrossRefDao.getMaxPosition(
+                        feedKey = feedKey,
+                        providerId = newsProvider.id.value
+                    ) + 1
+                }
+
+                val refs = providerPage.articles
+                    .distinctBy { it.originalUrl }
+                    .mapIndexed { index, article ->
+                        ArticleFeedCrossRefEntity(
+                            feedKey = feedKey,
+                            providerId = newsProvider.id.value,
+                            articleUrl = article.originalUrl,
+                            position = startPosition + index
+                        )
+                    }
+
+                feedDao.upsert(
+                    FeedEntity(
+                        feedKey = feedKey,
+                        providerId = newsProvider.id.value,
+                        country = country.code,
+                        language = language.code,
+                        category = category?.value
+                    )
+                )
+
+                articleFeedCrossRefDao.insertAll(refs)
+
+                remoteKeyDao.upsert(
+                    RemoteKeyEntity(
+                        feedKey = feedKey,
+                        providerId = newsProvider.id.value,
+                        nextPageToken = providerPage.nextPageToken?.value,
+                        endReached = providerPage.nextPageToken == null ||
+                                providerPage.articles.isEmpty(),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
             }
 
-            if (loadType == LoadType.REFRESH) {
-                onSyncSuccess(System.currentTimeMillis())
-            }
-
-            val endOfPaginationReached = articles.isEmpty()
+            val endOfPaginationReached = providerPage.nextPageToken == null
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             MediatorResult.Error(e)
         }
