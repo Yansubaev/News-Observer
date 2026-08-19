@@ -1,21 +1,10 @@
 package com.ians.observer.domain.model
 
-import androidx.annotation.StringRes
-import com.ians.observer.R
-
 enum class ProviderId(
-    val value: String,
-    @get:StringRes val nameRes: Int,
+    val value: String
 ) {
-    NEWS_API(
-        "news-api",
-        R.string.provider_news_api
-    ),
-
-    NEWS_DATA(
-        "news-data",
-        R.string.provider_news_data
-    );
+    NEWS_API("news-api"),
+    NEWS_DATA("news-data");
 
     companion object {
         fun fromValue(value: String): ProviderId =

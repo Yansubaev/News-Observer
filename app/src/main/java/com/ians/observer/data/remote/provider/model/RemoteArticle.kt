@@ -8,7 +8,7 @@ data class RemoteArticle (
     val providerId: ProviderId,
     val publisherId: String?,
     val publisherName: String,
-    val author: String?,
+    val authors: Set<String>?,
     val title: String,
     val description: String?,
     val originalUrl: String,

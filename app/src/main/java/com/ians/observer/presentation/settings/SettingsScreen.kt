@@ -18,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ians.observer.R
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.presentation.mapper.titleRes
 import com.ians.observer.presentation.navigation.SettingsScreen
 
 @Composable
@@ -140,7 +141,7 @@ private fun SourcesSettingsScreenUI(
     SettingsListView(
         listOf(
             SettingsItem.Checkbox(
-                title = ProviderId.NEWS_API.nameRes,
+                title = ProviderId.NEWS_API.titleRes,
                 checked = true,
                 onCheckedChange = {
                     onSourceSelected(ProviderId.NEWS_API.value, it)
@@ -220,4 +221,3 @@ fun SettingsListView(
 fun MainSettingsScreenUIPreview() {
     MainSettingsScreenUI()
 }
-

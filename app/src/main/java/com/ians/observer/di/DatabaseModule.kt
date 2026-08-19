@@ -7,6 +7,7 @@ import com.ians.observer.data.local.dao.ArticlePagingDao
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.dao.RemoteKeyDao
 import com.ians.observer.data.local.migration.MIGRATION_6_7
+import com.ians.observer.data.local.migration.MIGRATION_8_9
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,7 +30,7 @@ object DatabaseModule {
             name = "news_database"
         )
             .fallbackToDestructiveMigration(true)
-            .addMigrations(MIGRATION_6_7)
+            .addMigrations(MIGRATION_6_7, MIGRATION_8_9)
             .build()
     }
 

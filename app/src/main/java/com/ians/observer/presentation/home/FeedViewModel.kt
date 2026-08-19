@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,32 +27,43 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class FeedViewModel @Inject constructor(
     private val articleRepository: ArticleRepository,
     private val settingsRepository: SettingRepository
 ) : ViewModel() {
+
+    private data class FeedParams(
+        val category: Category,
+        val country: NewsCountry,
+        val language: NewsLanguage,
+    )
 
     private val _selectedCategoryState = MutableStateFlow(Category.GENERAL)
     val selectedCategoryState: StateFlow<Category> = _selectedCategoryState.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val articles: Flow<PagingData<Article>> = _selectedCategoryState
-        .debounce(300)
-        .distinctUntilChanged()
-        .flatMapLatest { category ->
-            articleRepository.getTopHeadlinesPaging(
+    val articles: Flow<PagingData<Article>> =
+        combine(
+            _selectedCategoryState,
+            settingsRepository.observeCountryPreference(),
+            settingsRepository.observeLanguagePreference(),
+        ) { category, country, language ->
+            FeedParams(
                 category = category,
-                country = NewsCountry.fromCode(settingsRepository.getCountryPreference()),
-                language = NewsLanguage.fromCode(settingsRepository.getLanguagePreference()),
-                syncInterval = settingsRepository.getSyncInterval()
+                country = country,
+                language = language
             )
         }
-        .cachedIn(viewModelScope)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = PagingData.empty()
-        )
+            .distinctUntilChanged()
+            .flatMapLatest { params ->
+                articleRepository.getTopHeadlinesPaging(
+                    category = params.category,
+                    country = params.country,
+                    language = params.language,
+                    syncInterval = settingsRepository.getSyncInterval()
+                )
+            }
+            .cachedIn(viewModelScope)
 
     fun changeCategory(category: Category) {
         _selectedCategoryState.value = category

@@ -9,7 +9,7 @@ fun RemoteArticle.toEntity(): ArticleEntity =
         url = this.originalUrl,
         publisherId = this.publisherId,
         publisherName = this.publisherName,
-        author = this.author,
+        authors = this.authors,
         title = this.title,
         description = this.description,
         imageUrl = this.imageUrl,
@@ -23,7 +23,7 @@ fun RemoteArticle.toArticle(isFavorite: Boolean): Article = Article(
         name = this.publisherName,
         id = this.publisherId
     ),
-    author = this.author,
+    authors = this.authors,
     title = this.title,
     description = this.description,
     originalUrl = this.originalUrl,

@@ -11,7 +11,7 @@ fun NewsApiArticleDto.toRemoteArticle(): RemoteArticle {
         id = this.url,
         publisherId = this.source.id,
         publisherName = this.source.name,
-        author = this.author,
+        authors = this.author?.let { setOf(it) },
         title = this.title,
         description = this.description,
         originalUrl = this.url,

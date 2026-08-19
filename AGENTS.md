@@ -1,5 +1,7 @@
 # AGENTS.md - Observer Android App
 
+Do not make edits yourself, only if user said explicitly!
+
 ## Build Commands
 - `./gradlew assembleDebug` - Build debug APK
 - `./gradlew assembleRelease` - Build release APK

@@ -29,6 +29,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.home.ArticleCard
+import com.ians.observer.presentation.mapper.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun FavoritesScreen(
                 FilterChip(
                     selected = category == selectedCategory,
                     onClick = { viewModel.changeCategory(category) },
-                    label = { Text(stringResource(category.stringRes)) }
+                    label = { Text(stringResource(category.titleRes)) }
                 )
             }
         }

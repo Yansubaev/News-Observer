@@ -21,7 +21,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
@@ -44,17 +44,18 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
+import com.ians.observer.presentation.mapper.titleRes
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-fun HomeScreen(
+fun FeedScreen(
     nestedScrollConnection: NestedScrollConnection,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: FeedViewModel = hiltViewModel()
 ) {
     val articles = viewModel.articles.collectAsLazyPagingItems()
-    val selectedCategory by viewModel.selectedCategoryState.collectAsState()
+    val selectedCategory by viewModel.selectedCategoryState.collectAsStateWithLifecycle()
 
-    HomeScreenState(
+    FeedScreenState(
         articles = articles,
         selectedCategory = selectedCategory,
         onToggleFavoriteArticle = { viewModel.toggleFavorite(it) },
@@ -65,17 +66,13 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenState(
+fun FeedScreenState(
     articles: LazyPagingItems<Article>,
     selectedCategory: Category,
     onToggleFavoriteArticle: (Article) -> Unit,
     onChangeCategory: (Category) -> Unit,
     nestedScrollConnection: NestedScrollConnection? = null,
-//    viewModel: HomeViewModel = hiltViewModel()
 ) {
-//    val articles = viewModel.articles.collectAsLazyPagingItems()
-//    val selectedCategory by viewModel.selectedCategoryState.collectAsState()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,7 +111,7 @@ fun HomeScreenState(
             FilterChip(
                 selected = category == selectedCategory,
                 onClick = { onChangeCategory(category) },
-                label = { Text(stringResource(category.stringRes)) },
+                label = { Text(stringResource(category.titleRes)) },
                 colors = FilterChipDefaults.filterChipColors().copy(
                     containerColor = MaterialTheme.colorScheme.surface,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -243,7 +240,7 @@ fun ErrorContent(message: String) {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun HomeScreenPreview() {
+fun FeedScreenPreview() {
     val fakeArticles = listOf(
         Article(
             id = "1",
@@ -251,7 +248,7 @@ fun HomeScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Ada Lovelace",
+            authors = setOf("Ada Lovelace"),
             title = "Breaking News One",
             description = "First fake article for preview",
             originalUrl = "https://example.com/article-1",
@@ -268,7 +265,7 @@ fun HomeScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Grace Hopper",
+            authors = setOf("Grace Hopper"),
             title = "Breaking News Two",
             description = "Second fake article for preview",
             originalUrl = "https://example.com/article-2",
@@ -285,7 +282,7 @@ fun HomeScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Alan Turing",
+            authors = setOf("Alan Turing"),
             title = "Breaking News Three",
             description = "Third fake article for preview",
             originalUrl = "https://example.com/article-3",
@@ -303,7 +300,7 @@ fun HomeScreenPreview() {
     }
     val articles = articlesFlow.collectAsLazyPagingItems()
 
-    HomeScreenState(
+    FeedScreenState(
         articles = articles,
         selectedCategory = Category.GENERAL,
         onToggleFavoriteArticle = {},

@@ -146,7 +146,7 @@ class ArticleRepositoryImpl @Inject constructor(
                 url = article.originalUrl,
                 publisherId = article.publisher.id,
                 publisherName = article.publisher.name,
-                author = article.author,
+                authors = article.authors,
                 title = article.title,
                 description = article.description,
                 imageUrl = article.imageUrl,

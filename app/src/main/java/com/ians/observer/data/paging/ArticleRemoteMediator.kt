@@ -169,12 +169,15 @@ class ArticleRemoteMediator(
                 )
             }
 
-            val endOfPaginationReached = providerPage.nextPageToken == null
+            val endOfPaginationReached =
+                providerPage.nextPageToken == null || providerPage.nextPageToken == pageToken
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
 
         } catch (e: CancellationException) {
+            println(e.localizedMessage)
             throw e
         } catch (e: Exception) {
+            println(e.localizedMessage)
             MediatorResult.Error(e)
         }
     }

@@ -2,6 +2,7 @@ package com.ians.observer.di
 
 import com.ians.observer.BuildConfig
 import com.ians.observer.data.remote.newsapi.NewsApiApi
+import com.ians.observer.data.remote.newsdata.NewsDataApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,7 +32,7 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
                 val url = originalRequest.url.newBuilder()
-                    .addQueryParameter("apiKey", BuildConfig.NEWS_API_KEY)
+                    .addQueryParameter("apiKey", BuildConfig.NEWS_DATA_API_KEY)
                     .build()
 
                 val newRequest = originalRequest.newBuilder()
@@ -45,9 +46,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit{
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(NewsApiApi.BASE_URL)
+            .baseUrl(NewsDataApi.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -55,7 +56,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNewsApi(retrofit: Retrofit): NewsApiApi{
+    fun provideNewsApi(retrofit: Retrofit): NewsApiApi {
         return retrofit.create(NewsApiApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNewsDataApi(retrofit: Retrofit): NewsDataApi {
+        return retrofit.create(NewsDataApi::class.java)
     }
 }

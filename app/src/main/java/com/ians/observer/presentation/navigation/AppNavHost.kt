@@ -16,7 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ians.observer.presentation.favorites.FavoritesScreen
-import com.ians.observer.presentation.home.HomeScreen
+import com.ians.observer.presentation.home.FeedScreen
 import com.ians.observer.presentation.search.SearchScreen
 import com.ians.observer.presentation.settings.LanguageSettingsScreen
 import com.ians.observer.presentation.settings.MainSettingsScreen
@@ -37,8 +37,8 @@ fun AppNavHost(
         modifier = Modifier.padding(paddingValues),
         enterTransition = { fadeIn(animationSpec = tween(250)) },
         exitTransition = { fadeOut(animationSpec = tween(250)) }) {
-        composable(Screen.Home.route) {
-            HomeScreen(scrollBehavior.nestedScrollConnection)
+        composable(Screen.Feed.route) {
+            FeedScreen(scrollBehavior.nestedScrollConnection)
         }
         composable(Screen.Favorites.route) {
             FavoritesScreen(scrollBehavior.nestedScrollConnection)

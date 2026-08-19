@@ -1,6 +1,7 @@
 package com.ians.observer.di
 
 import com.ians.observer.data.remote.newsapi.NewsApiProvider
+import com.ians.observer.data.remote.newsdata.NewsDataProvider
 import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.domain.model.ProviderId
 import dagger.Binds
@@ -24,6 +25,6 @@ abstract class NewsProviderModule {
 //    @IntoMap
 //    @NewsProviderKey(ProviderId.NEWS_API)
     abstract fun bindNewsProvider(
-        provider: NewsApiProvider
+        provider: NewsDataProvider
     ): NewsProvider
 }

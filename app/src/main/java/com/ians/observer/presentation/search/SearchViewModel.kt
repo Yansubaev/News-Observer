@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -30,6 +31,12 @@ class SearchViewModel @Inject constructor(
     private val articleRepository: ArticleRepository,
     private val settingRepository: SettingRepository,
 ) : ViewModel() {
+
+    private data class SearchParams(
+        val query: String,
+        val country: NewsCountry,
+        val language: NewsLanguage,
+    )
 
     private val _query = MutableStateFlow<String>("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -49,18 +56,30 @@ class SearchViewModel @Inject constructor(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    private val searchPages = query
-        .debounce(300)
-        .flatMapLatest { q ->
-            if (q.isBlank()) flowOf(PagingData.empty())
-            else articleRepository.searchNewsPaging(
-                query = q,
-                language = NewsLanguage.fromCode(settingRepository.getLanguagePreference()),
-                country = NewsCountry.fromCode(settingRepository.getCountryPreference()),
-                category = null
+    private val searchPages =
+        combine(
+            query,
+            settingRepository.observeCountryPreference(),
+            settingRepository.observeLanguagePreference(),
+        ) { query, country, language ->
+            SearchParams(
+                query,
+                country,
+                language
             )
         }
-        .cachedIn(viewModelScope)
+            .distinctUntilChanged()
+            .debounce(300)
+            .flatMapLatest { params ->
+                if (params.query.isBlank()) flowOf(PagingData.empty())
+                else articleRepository.searchNewsPaging(
+                    query = params.query,
+                    language = params.language,
+                    country = params.country,
+                    category = null
+                )
+            }
+            .cachedIn(viewModelScope)
 
     val searchResultArticles = combine(
         searchPages,

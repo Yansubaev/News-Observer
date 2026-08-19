@@ -238,7 +238,7 @@ fun SearchScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Ada Lovelace",
+            authors = setOf("Ada Lovelace"),
             title = "Breaking News One",
             description = "First fake article for preview",
             originalUrl = "https://example.com/article-1",
@@ -255,7 +255,7 @@ fun SearchScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Grace Hopper",
+            authors = setOf("Grace Hopper"),
             title = "Breaking News Two",
             description = "Second fake article for preview",
             originalUrl = "https://example.com/article-2",
@@ -272,7 +272,7 @@ fun SearchScreenPreview() {
                 name = "Labubu",
                 id = "labubu"
             ),
-            author = "Alan Turing",
+            authors = setOf("Alan Turing"),
             title = "Breaking News Three",
             description = "Third fake article for preview",
             originalUrl = "https://example.com/article-3",

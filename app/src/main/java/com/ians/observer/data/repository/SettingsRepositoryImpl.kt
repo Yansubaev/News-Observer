@@ -7,9 +7,12 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -32,22 +35,10 @@ class SettingsRepositoryImpl @Inject constructor(
         return 10 * 60 * 1000
     }
 
-    override suspend fun getCountryPreference(): String {
-        return dataStore.data.map { prefs ->
-            prefs[PreferencesKeys.COUNTRY] ?: "us"
-        }.first()
-    }
-
     override suspend fun setCountryPreference(countryCode: String) {
         dataStore.edit { prefs ->
             prefs[PreferencesKeys.COUNTRY] = countryCode
         }
-    }
-
-    override suspend fun getLanguagePreference(): String {
-        return dataStore.data.map { prefs ->
-            prefs[PreferencesKeys.LANGUAGE] ?: "en"
-        }.first()
     }
 
     override suspend fun setLanguagePreference(languageCode: String) {
@@ -97,4 +88,20 @@ class SettingsRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    override fun observeCountryPreference(): Flow<NewsCountry> =
+        dataStore.data
+            .map { prefs ->
+                val code = prefs[PreferencesKeys.COUNTRY] ?: "us"
+                NewsCountry.fromCode(code)
+            }
+            .distinctUntilChanged()
+
+    override fun observeLanguagePreference(): Flow<NewsLanguage> =
+        dataStore.data
+            .map { prefs ->
+                val code = prefs[PreferencesKeys.LANGUAGE] ?: "en"
+                NewsLanguage.fromCode(code)
+            }
+            .distinctUntilChanged()
 }

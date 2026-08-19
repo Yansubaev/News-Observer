@@ -19,7 +19,7 @@ fun ArticleEntity.toArticle(
             name = this.publisherName,
             id = this.publisherId
         ),
-        author = this.author,
+        authors = this.authors,
         title = this.title,
         description = this.description,
         originalUrl = this.url,

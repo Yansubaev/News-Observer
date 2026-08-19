@@ -7,8 +7,10 @@ import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,50 +19,31 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingRepository,
 ) : ViewModel() {
 
-    private val _selectedRegionState = MutableStateFlow(NewsCountry.US)
-    val selectedRegionState: StateFlow<NewsCountry> = _selectedRegionState.asStateFlow()
+    val selectedRegionState: StateFlow<NewsCountry> =
+        settingsRepository.observeCountryPreference()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = NewsCountry.US
+            )
 
-    private val _selectedLanguageState = MutableStateFlow(NewsLanguage.EN)
-    val selectedLanguageState: StateFlow<NewsLanguage> = _selectedLanguageState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            actualizeSelectedRegion()
-            actualizeSelectedLanguage()
-        }
-    }
+    val selectedLanguageState: StateFlow<NewsLanguage> =
+        settingsRepository.observeLanguagePreference()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = NewsLanguage.EN
+            )
 
     fun selectRegion(region: NewsCountry) {
         viewModelScope.launch {
             settingsRepository.setCountryPreference(region.code)
-            actualizeSelectedRegion()
         }
     }
 
     fun selectLanguage(language: NewsLanguage) {
         viewModelScope.launch {
             settingsRepository.setLanguagePreference(language.code)
-            actualizeSelectedLanguage()
-        }
-    }
-
-    private suspend fun actualizeSelectedLanguage() {
-        val setting = settingsRepository.getLanguagePreference()
-        try {
-            _selectedLanguageState.value = NewsLanguage.fromCode(setting)
-        } catch (e: IllegalArgumentException) {
-            _selectedLanguageState.value = NewsLanguage.EN
-            println(e)
-        }
-    }
-
-    private suspend fun actualizeSelectedRegion() {
-        val setting = settingsRepository.getCountryPreference()
-        try {
-            _selectedRegionState.value = NewsCountry.fromCode(setting)
-        } catch (e: IllegalArgumentException) {
-            _selectedRegionState.value = NewsCountry.US
-            println(e)
         }
     }
 }

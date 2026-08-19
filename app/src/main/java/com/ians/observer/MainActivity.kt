@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavDirections
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -54,14 +53,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    val screens = listOf(Screen.Home, Screen.Search, Screen.Favorites)
+    val screens = listOf(Screen.Feed, Screen.Search, Screen.Favorites)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(topBar = {
         val name = when (currentRoute) {
-            Screen.Home.route -> stringResource(R.string.app_name)
+            Screen.Feed.route -> stringResource(R.string.app_name)
             Screen.Favorites.route -> stringResource(R.string.nav_favorites)
             Screen.Search.route -> stringResource(R.string.nav_search)
             SettingsScreen.Main.route -> stringResource(R.string.settings)
@@ -71,7 +70,7 @@ fun MainScreen() {
             else -> ""
         }
         if (currentRoute in listOf(
-                Screen.Home.route,
+                Screen.Feed.route,
                 Screen.Favorites.route,
             ) || currentRoute in SettingsScreen.routes
         )
@@ -97,7 +96,7 @@ fun MainScreen() {
                     }
                 },
                 actions = {
-                    if (currentRoute in listOf(Screen.Home.route, Screen.Favorites.route)) {
+                    if (currentRoute in listOf(Screen.Feed.route, Screen.Favorites.route)) {
                         IconButton(
                             onClick = {
                                 navController.navigate(SettingsScreen.Main.route)

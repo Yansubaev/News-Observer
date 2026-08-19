@@ -7,6 +7,7 @@ import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.data.remote.provider.model.ProviderPage
 import com.ians.observer.data.remote.provider.model.SearchRequest
+import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import javax.inject.Inject
 
@@ -27,6 +28,16 @@ class NewsApiProvider @Inject constructor(
             ProviderCapabilities.SEARCH,
             ProviderCapabilities.CATEGORY_FILTER
         )
+    override val supportedCategories: Set<Category> =
+        setOf(
+            Category.GENERAL,
+            Category.BUSINESS,
+            Category.ENTERTAINMENT,
+            Category.HEALTH,
+            Category.SCIENCE,
+            Category.SPORTS,
+            Category.TECHNOLOGY,
+        )
 
     override suspend fun loadFeed(
         request: FeedRequest,
@@ -36,16 +47,10 @@ class NewsApiProvider @Inject constructor(
 
         val response = newsApiApi.getHeadlines(
             country = request.country?.code ?: "us",
-            category = request.category?.value,
+            category = request.category?.toNewsApiCategory(),
             page = page,
             pageSize = NETWORK_PAGE_SIZE
         )
-
-        println("__________________________")
-        println(response.articles.size)
-        println(response.articles.distinctBy { it.url }.size)
-        println(response.totalResults)
-        println("++++++++++++++++++++++++++")
 
         if (response.status != "ok") {
             throw ProviderException(
@@ -98,4 +103,3 @@ class NewsApiProvider @Inject constructor(
         )
     }
 }
-

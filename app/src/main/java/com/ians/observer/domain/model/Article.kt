@@ -4,7 +4,7 @@ data class Article(
     val id: String,
     val providerId: ProviderId,
     val publisher: Publisher,
-    val author: String?,
+    val authors: Set<String>?,
     val title: String,
     val description: String?,
     val originalUrl: String,
