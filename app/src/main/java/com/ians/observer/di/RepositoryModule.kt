@@ -2,7 +2,9 @@ package com.ians.observer.di
 
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.data.repository.ArticleRepositoryImpl
+import com.ians.observer.data.repository.SearchHistoryRepositoryImpl
 import com.ians.observer.data.repository.SettingsRepositoryImpl
+import com.ians.observer.domain.repository.SearchHistoryRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.Binds
 import dagger.Module
@@ -26,4 +28,9 @@ abstract class RepositoryModule {
         settingRepositoryImpl: SettingsRepositoryImpl
     ): SettingRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindSearchHistoryRepository(
+        searchHistoryRepository: SearchHistoryRepositoryImpl
+    ): SearchHistoryRepository
 }

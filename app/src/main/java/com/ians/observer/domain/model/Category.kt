@@ -28,9 +28,12 @@ enum class Category(
     }
 
     companion object {
-        fun fromValue(value: String): Category =
+        fun fromValueSafe(value: String): Category =
             Category.entries.firstOrNull { it.value.equals(value, ignoreCase = true) }
                 ?: GENERAL
+
+        fun fromValue(value: String): Category? =
+            Category.entries.firstOrNull { it.value.equals(value, ignoreCase = true) }
 
     }
 }

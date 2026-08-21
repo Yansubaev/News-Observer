@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.home
+package com.ians.observer.presentation.feed
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring

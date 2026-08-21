@@ -37,13 +37,13 @@ class SettingsViewModel @Inject constructor(
 
     fun selectRegion(region: NewsCountry) {
         viewModelScope.launch {
-            settingsRepository.setCountryPreference(region.code)
+            settingsRepository.setCountryPreference(region)
         }
     }
 
     fun selectLanguage(language: NewsLanguage) {
         viewModelScope.launch {
-            settingsRepository.setLanguagePreference(language.code)
+            settingsRepository.setLanguagePreference(language)
         }
     }
 }

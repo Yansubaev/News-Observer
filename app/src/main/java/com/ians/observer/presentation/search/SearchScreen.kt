@@ -42,7 +42,7 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
-import com.ians.observer.presentation.home.SuccessContent
+import com.ians.observer.presentation.feed.SuccessContent
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable

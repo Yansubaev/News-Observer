@@ -39,12 +39,8 @@ class ArticleSearchPagingSource(
                 pageToken = params.key
             )
 
-            val existingFavoriteUrls = articleDao.getFavoriteArticlesUrls().first()
-
             val articles = providerPage.articles.map {
-                it.toArticle(
-                    isFavorite = existingFavoriteUrls.contains(it.originalUrl)
-                )
+                it.toArticle(false)
             }
 
             LoadResult.Page(

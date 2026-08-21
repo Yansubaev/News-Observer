@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.home
+package com.ians.observer.presentation.feed
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll

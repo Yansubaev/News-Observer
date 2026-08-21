@@ -8,16 +8,15 @@ import androidx.paging.map
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.toArticle
-//import com.ians.observer.data.local.entity.toArticle
 import com.ians.observer.data.paging.ArticleRemoteMediatorFactory
 import com.ians.observer.data.paging.ArticleSearchPagingSource
 import com.ians.observer.data.paging.FeedKeyFactory
 import com.ians.observer.data.paging.model.PagingSourceSpec
-import com.ians.observer.data.remote.provider.NewsProvider
+import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
-import com.ians.observer.domain.model.NewsCountry
-import com.ians.observer.domain.model.NewsLanguage
+import com.ians.observer.domain.model.FeedSpec
+import com.ians.observer.domain.model.SearchSpec
 import com.ians.observer.domain.repository.ArticleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -28,7 +27,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ArticleRepositoryImpl @Inject constructor(
-    private val newsProvider: NewsProvider,
+    private val newsProviderRegistry: NewsProviderRegistry,
     private val database: NewsDatabase,
     private val remoteMediatorFactory: ArticleRemoteMediatorFactory
 ) : ArticleRepository {
@@ -41,23 +40,27 @@ class ArticleRepositoryImpl @Inject constructor(
 
     @OptIn(ExperimentalPagingApi::class)
     override fun getTopHeadlinesPaging(
-        category: Category?,
-        country: NewsCountry,
-        language: NewsLanguage,
+        spec: FeedSpec,
         syncInterval: Long,
     ): Flow<PagingData<Article>> = flow {
+        val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
+            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${null}")
+
+        val newsProvider = newsProviderRegistry.require(availableProviderId)
+
         val feedKey = FeedKeyFactory.create(
             PagingSourceSpec.Feed(
-                country = country,
-                language = language,
-                category = category
+                country = spec.country,
+                language = spec.language,
+                category = spec.category
             )
         )
 
         val remoteMediator = remoteMediatorFactory.create(
-            category = category,
-            country = country,
-            language = language,
+            newsProvider = newsProvider,
+            category = spec.category,
+            country = spec.country,
+            language = spec.language,
             syncInterval = syncInterval
         )
 
@@ -84,29 +87,31 @@ class ArticleRepositoryImpl @Inject constructor(
         })
     }
 
-    override fun searchNewsPaging(
-        query: String,
-        language: NewsLanguage?,
-        country: NewsCountry?,
-        category: Category?
-    ): Flow<PagingData<Article>> = Pager(
-        config = PagingConfig(
-            pageSize = PAGE_SIZE,
-            initialLoadSize = INITIAL_LOAD_SIZE,
-            enablePlaceholders = false,
-            prefetchDistance = PREFETCH_DISTANCE
-        ),
-        pagingSourceFactory = {
-            ArticleSearchPagingSource(
-                newsProvider = newsProvider,
-                database = database,
-                query = query,
-                language = language,
-                country = country,
-                category = category
-            )
-        }
-    ).flow
+    override fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>> {
+        val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
+            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${null}")
+
+        val newsProvider = newsProviderRegistry.require(availableProviderId)
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                initialLoadSize = INITIAL_LOAD_SIZE,
+                enablePlaceholders = false,
+                prefetchDistance = PREFETCH_DISTANCE
+            ),
+            pagingSourceFactory = {
+                ArticleSearchPagingSource(
+                    newsProvider = newsProvider,
+                    database = database,
+                    query = spec.query,
+                    language = spec.language,
+                    country = spec.country,
+                    category = spec.category
+                )
+            }
+        ).flow
+    }
 
     override fun getFavoriteArticles(): Flow<List<Article>> {
         return database.articleDao().getFavoriteArticles()
@@ -133,8 +138,13 @@ class ArticleRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getFavoriteCategories(): Flow<List<String>> {
+    override fun getFavoriteCategories(): Flow<List<Category>> {
         return database.articleDao().getFavoriteCategories()
+            .map { strings ->
+                strings.mapNotNull {
+                    Category.fromValue(it)
+                }
+            }
     }
 
     override suspend fun addToFavorites(
@@ -154,7 +164,7 @@ class ArticleRepositoryImpl @Inject constructor(
                 content = article.content
             ),
             category = category?.value,
-            providerId = newsProvider.id.value,
+            providerId = article.providerId.value,
         )
     }
 

@@ -28,7 +28,7 @@ class FavoritesViewModel @Inject constructor(
 
     val categories: StateFlow<List<Category>> =
         articleRepository.getFavoriteCategories().map { strings ->
-            listOf(Category.ALL) + strings.map { Category.fromValue(it) }
+            listOf(Category.ALL) + strings
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

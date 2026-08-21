@@ -22,10 +22,10 @@ import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 class ArticleRemoteMediatorFactory @Inject constructor(
-    private val newsProvider: NewsProvider,
     private val database: NewsDatabase,
 ) {
     fun create(
+        newsProvider: NewsProvider,
         category: Category? = null,
         country: NewsCountry = NewsCountry.US,
         language: NewsLanguage = NewsLanguage.EN,

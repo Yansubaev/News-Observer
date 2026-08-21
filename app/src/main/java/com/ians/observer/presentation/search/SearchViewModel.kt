@@ -8,7 +8,10 @@ import androidx.paging.map
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
+import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.domain.model.SearchSpec
 import com.ians.observer.domain.repository.ArticleRepository
+import com.ians.observer.domain.repository.SearchHistoryRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +33,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val articleRepository: ArticleRepository,
     private val settingRepository: SettingRepository,
+    private val searchHistoryRepository: SearchHistoryRepository
 ) : ViewModel() {
 
     private data class SearchParams(
@@ -45,7 +49,7 @@ class SearchViewModel @Inject constructor(
     val liveQuery: StateFlow<String> = _liveQuery.asStateFlow()
 
     val searchHistory = liveQuery
-        .combine(settingRepository.getSearchHistory()) { q, h ->
+        .combine(searchHistoryRepository.getSearchHistory()) { q, h ->
             if (q.isBlank()) h.takeLast(5)
             else h.filter { it.contains(q, ignoreCase = true) }
         }
@@ -73,10 +77,13 @@ class SearchViewModel @Inject constructor(
             .flatMapLatest { params ->
                 if (params.query.isBlank()) flowOf(PagingData.empty())
                 else articleRepository.searchNewsPaging(
-                    query = params.query,
-                    language = params.language,
-                    country = params.country,
-                    category = null
+                    SearchSpec(
+                        query = params.query,
+                        language = params.language,
+                        country = params.country,
+                        category = null,
+                        providerIds = listOf(ProviderId.NEWS_DATA)
+                    )
                 )
             }
             .cachedIn(viewModelScope)
@@ -99,14 +106,14 @@ class SearchViewModel @Inject constructor(
     }
 
     fun clearSearchQuery(query: String) = viewModelScope.launch {
-        settingRepository.deleteSearchQuery(query)
+        searchHistoryRepository.deleteSearchQuery(query)
     }
 
     fun searchNews(query: String) = viewModelScope.launch {
         if (query.isBlank()) return@launch
 
         _query.value = query
-        settingRepository.saveSearchQuery(query)
+        searchHistoryRepository.saveSearchQuery(query)
     }
 
     fun setFavorite(article: Article, shouldBeFavorite: Boolean) = viewModelScope.launch {

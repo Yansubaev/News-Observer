@@ -16,7 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ians.observer.presentation.favorites.FavoritesScreen
-import com.ians.observer.presentation.home.FeedScreen
+import com.ians.observer.presentation.feed.FeedScreen
 import com.ians.observer.presentation.search.SearchScreen
 import com.ians.observer.presentation.settings.LanguageSettingsScreen
 import com.ians.observer.presentation.settings.MainSettingsScreen

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
-import com.ians.observer.presentation.home.ArticleCard
+import com.ians.observer.presentation.feed.ArticleCard
 import com.ians.observer.presentation.mapper.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)

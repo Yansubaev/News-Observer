@@ -1,6 +1,7 @@
 # Экран подробностей статьи
 
-Актуальность заметки: **15 августа 2026 года**.
+Актуальность сверки с кодовой базой: **19 августа 2026 года**.
+Лицензионные выводы в этой редакции повторно не перепроверялись.
 
 Документ фиксирует согласованный состав экрана подробной информации о статье,
 требования к атрибуции и переходу на сайт издателя, а также рекомендуемую
@@ -72,27 +73,32 @@ Reuters
 Метаданные события: GDELT Project
 ```
 
-Существующее поле `Article.sourceName` не покрывает оба значения. Перед
-подключением новых API domain-модель следует расширить, например:
+В текущей domain-модели эти понятия уже разделены:
 
 ```kotlin
-enum class NewsProvider {
-    NEWS_DATA,
-    GDELT,
+enum class ProviderId {
     NEWS_API,
+    NEWS_DATA,
 }
 
-data class Article(
-    // Остальные поля...
-    val provider: NewsProvider,
-    val publisherName: String,
-    val publisherDomain: String?,
-    val author: String?,
+data class Publisher(
+    val name: String,
+    val id: String?,
 )
+
+// Article хранит providerId, publisher и authors: Set<String>?.
 ```
 
-`NEWS_API` доступен только в debug. Это ограничение сборки описано в общем
-compliance-документе.
+Поля домена издателя пока нет. Для UI домен можно извлекать из
+уже проверенного `Article.originalUrl`; отдельное поле стоит добавлять,
+только если оно придёт из доверенного API-поля.
+
+GDELT в коде ещё не реализован и отсутствует в `ProviderId`. Требования ниже
+остаются целевыми для будущего провайдера. `NEWS_API` по compliance-плану
+должен быть debug-only, но это ограничение пока **не реализовано** в
+`app/build.gradle.kts`. Сейчас оба API-ключа требуются при конфигурации
+любого build variant, а через Hilt фактически подключён только
+`NewsDataProvider`.
 
 ## 4. Атрибуция провайдеров
 
@@ -164,11 +170,16 @@ contentDescription = null
 Если изображение несёт уникальную смысловую информацию и доступно корректное
 описание, использовать это описание.
 
+Текущая `ArticleCard` передаёт в `AsyncImage.contentDescription`
+`article.title`. При реализации detail-экрана это поведение не копировать;
+для обычного hero image использовать `null`.
+
 ## 6. Предлагаемый UI
 
 ```text
 ┌──────────────────────────────────────┐
-│ ←  Подробности              ♡   ↗    │
+│                 ━━━                  │
+│ ✕  Подробности              ♡   ↗    │
 ├──────────────────────────────────────┤
 │                                      │
 │       лицензированное изображение    │
@@ -215,18 +226,19 @@ contentDescription = null
 
 ### Верхняя панель
 
-В `TopAppBar` разместить:
+`TopAppBar` можно разместить внутри `ModalBottomSheet`: это
+обычный composable, а не часть, доступная только в `Scaffold`. В нём разместить:
 
-- кнопку «Назад»;
+- кнопку «Закрыть»; системный Back и свайп вниз делают то же самое;
 - кнопку избранного;
 - кнопку «Поделиться».
 
 При отправке через Android Sharesheet передавать оригинальный URL статьи, а не
 внутренний route приложения.
 
-На подробном экране нижнюю навигацию Home/Search/Favorites лучше скрыть. Экран
-открывается поверх текущего раздела и возвращает пользователя назад в прежнее
-место списка.
+Лист открывается поверх текущего раздела. Под модальным scrim остаётся прежний
+Home/Search/Favorites с его позицией прокрутки; показывать поверх листа отдельную
+нижнюю навигацию не нужно.
 
 ## 7. Кнопка оригинальной публикации
 
@@ -318,7 +330,78 @@ WebView использовать только если позднее появи
 - Формулировки, создающие впечатление, что Observer является автором или
   официальным приложением издателя.
 
-## 11. Навигация и загрузка данных
+## 11. Модальное открытие и навигация
+
+### Рекомендуемый UI-паттерн
+
+Для предпросмотра использовать Material 3 `ModalBottomSheet`, который:
+
+- выезжает снизу поверх текущего экрана;
+- закрывается свайпом вниз, касанием scrim, системным Back и кнопкой
+  «Закрыть»;
+- сразу открывается в expanded-состоянии через
+  `rememberModalBottomSheetState(skipPartiallyExpanded = true)`;
+- занимает всю высоту на телефоне за счёт `Modifier.fillMaxHeight()`; без него
+  expanded-состояние будет только высотой с сам контент;
+- после закрытия удаляется из composition.
+
+`BottomSheetScaffold` здесь не нужен: он предназначен для постоянного standard
+bottom sheet, связанного с базовым контентом. Здесь нужен именно модальный
+оверлей.
+
+### `Scaffold` и `paddingValues`
+
+Два вложенных `Scaffold` технически допустимы. `PaddingValues` не «конфликтуют»
+сами по себе: каждый `Scaffold` лишь передаёт свой `innerPadding`, а контент решает,
+как его применить. Проблема возникает, если внешний и внутренний контейнеры
+одновременно добавляют отступы app bars и system insets: тогда они могут
+суммироваться.
+
+В текущем `MainScreen` внешний `Scaffold` уже передаёт свои `paddingValues`, а
+`AppNavHost` применяет их через `Modifier.padding(paddingValues)`. Но в используемой
+сейчас Material 3 реализации Android `ModalBottomSheet` рисуется в отдельном
+полноэкранном dialog-window. Поэтому constraints и `paddingValues` родительского
+destination сами по себе его не обрежут.
+
+Тем не менее единственный `ModalBottomSheet` лучше поднять на уровень `MainScreen` и
+управлять им поверх корневого `Scaffold`. Это не требование для правильных
+constraints, а единая точка владения состоянием для Home, Search и Favorites:
+
+```text
+MainScreen
+└─ Box (fillMaxSize)
+   ├─ Scaffold
+   │  ├─ topBar
+   │  ├─ bottomBar
+   │  └─ AppNavHost(paddingValues)
+   └─ ArticleDetailsSheet, если выбрана статья
+```
+
+Внутри sheet второй `Scaffold` не нужен. Достаточно `Column` с `TopAppBar` и
+`LazyColumn(modifier = Modifier.weight(1f))`. `ModalBottomSheet` по умолчанию добавляет и
+потребляет `safeDrawing` insets сверху и снизу. Вложенный Material 3 `TopAppBar`
+увидит уже потреблённый верхний inset, поэтому его default `windowInsets` не должен
+удваивать отступ. Внешние `paddingValues` к sheet повторно не применять. Для
+Snackbar можно использовать один `SnackbarHostState`, принадлежащий `MainScreen`.
+
+Важно свести все пути закрытия к одному `onDismiss`: при программном закрытии
+сначала вызвать `sheetState.hide()`, затем очистить выбранный article key и удалить
+sheet из composition.
+
+### Состояние текущей кодовой базы
+
+| Область | Что уже есть | Чего не хватает |
+|---|---|---|
+| UI | Пустые `ArticleDetailsScreen` и `ArticleDetailsViewModel` в `presentation/articlepreview` | Sheet, UI state, loading/error/content, действия |
+| Карточка | `ArticleCard` получает только `onFavoriteClick` | Отдельный `onArticleClick` |
+| Navigation | `NavHost` знает Feed, Search, Favorites и Settings | Состояние выбранной статьи и modal-слой над `Scaffold` |
+| Domain | `Article.providerId` и `Article.publisher` уже разделены | GDELT и домен издателя пока отсутствуют |
+| Identity | `Article.id` есть, а `ArticleEntity` хранится по URL | Единый стабильный key не сохраняется end-to-end |
+| Repository | Лента, поиск и избранное | Метод наблюдения/загрузки одной статьи |
+| Search | Remote-результаты возвращаются напрямую из `PagingSource` | Неизбранная search-статья не сохраняется в Room |
+| Browser | Нет зависимости `androidx.browser:browser` | Custom Tabs пока нельзя реализовать |
+
+### Открытие и загрузка статьи
 
 В `ArticleCard` добавить независимые callbacks:
 
@@ -329,40 +412,63 @@ onFavoriteClick: (Article) -> Unit
 
 Нажатие на кнопку избранного не должно вызывать `onArticleClick`.
 
-Не передавать весь объект `Article` и сырой URL в route. Использовать стабильный
-идентификатор вместе с провайдером:
+В modal-state не хранить сырой URL или весь `Article`. Хранить небольшой
+стабильный ключ:
 
-```text
-article/{provider}/{articleId}
+```kotlin
+data class ArticleKey(
+    val providerId: ProviderId,
+    val stableId: String,
+)
 ```
 
-Экран загружает объект из Room или репозитория по составному ключу
-`provider + articleId`. Это позволяет:
+До реализации экрана нужно унифицировать identity. Сейчас `NewsData` даёт API
+`articleId`, `NewsApi` использует URL, а после записи в Room `Article.id` всегда
+становится URL. `ArticleEntity` при этом не хранит ни provider, ни API article ID.
+
+Целевой вариант — хранить в Room стабильный `articleKey` и `providerId`. Если API не
+даёт стабильный ID, `articleKey` может быть детерминированным hash из
+`providerId + normalizedOriginalUrl`. Сам URL остаётся обычным полем. Репозиторий
+должен предоставить метод вида `observeArticle(articleKey): Flow<Article?>`.
+
+Это позволяет:
 
 - открывать один экран из Home, Search и Favorites;
-- корректно восстанавливаться после пересоздания процесса;
-- не упираться в экранирование длинных URL;
+- восстанавливать выбранную статью после пересоздания процесса;
+- не кодировать длинный URL в route или saved state;
 - различать одинаковые ID разных провайдеров.
 
-Если API не предоставляет стабильный ID, нужно хранить собственный стабильный
-ключ, например hash нормализованного original URL вместе с provider. URL при
-этом остаётся обычным полем, а не navigation argument.
+Поисковые результаты сейчас не записываются в Room, если статья не добавлена в
+избранное. Перед открытием sheet такую статью нужно upsert-нуть в локальный кэш
+или хранить в SavedState минимальный снимок данных. Первый вариант лучше согласуется
+с repository pattern.
+
+Сам `ArticleKey?` можно хранить в `MainScreen` через `rememberSaveable` с `Saver`.
+Если modal-state выносится в host-level ViewModel, для той же цели использовать
+`SavedStateHandle`. Отдельный `MainViewModel` в текущем коде пока отсутствует.
+
+Если в будущем появятся deep links на статью, можно добавить route
+`article/{provider}/{stableId}` и из него управлять modal-state. Для первой версии
+отдельный destination не обязателен.
+
+Альтернатива без sheet — обычный NavHost destination с `slideInVertically` и
+`slideOutVertically`. Он даст анимацию выезда снизу, но сам по себе не даст свайп
+вниз для закрытия. Поэтому для текущего UX остаётся запасным вариантом.
 
 ### Предлагаемая структура presentation-слоя
 
 ```text
-presentation/article/
-├── ArticleDetailsScreen.kt
-├── ArticleDetailsUiState.kt
+presentation/articlepreview/          // пакет уже существует
+├── ArticleDetailsSheet.kt          // ModalBottomSheet и его lifecycle
+├── ArticleDetailsScreen.kt         // stateless-контент
+├── ArticleDetailsUiState.kt        // data/sealed type, а не @Composable
 └── ArticleDetailsViewModel.kt
 ```
 
-Экран использует собственный `Scaffold`:
-
-- `TopAppBar` с навигацией и действиями;
-- `LazyColumn` или прокручиваемый `Column`;
-- основная кнопка в конце контента либо в `bottomBar`;
-- состояния loading/content/error/not found.
+Существующую composable-функцию `ArticleDetailsUiState(article)` переименовать в
+контент-функцию. `UiState` должен быть обычным immutable-типом с
+loading/content/error/not found. Текущий `ArticleDetailsViewModel` уже получает
+`ArticleRepository`, но пока не имеет ни ключа статьи, ни потока UI state.
 
 ## 12. Нефункциональные требования
 
@@ -378,17 +484,30 @@ presentation/article/
   - статьи без автора и описания;
   - GDELT-статьи с placeholder и атрибуцией;
   - тёмной темы.
-- Добавить UI-тесты на переход, кнопку назад, избранное и внешний URL.
+- Добавить UI-тесты на открытие, закрытие кнопкой/Back/свайпом, избранное
+  и внешний URL.
 - Валидировать URL перед созданием Intent.
 - Не логировать полный URL, если он содержит чувствительные query parameters.
 
 ## 13. Чек-лист реализации
 
-- [ ] В domain-модели разделены `provider` и `publisher`.
-- [ ] Для статьи есть стабильный ID в пределах provider.
+- [x] В domain-модели разделены `providerId` и `publisher`.
+- [ ] Для статьи есть один стабильный key в domain, Room и repository.
+- [ ] `providerId` и stable article ID сохраняются в `ArticleEntity` или в другой
+  однозначно связанной Room-модели.
+- [ ] В `ArticleRepository` есть метод загрузки/наблюдения одной статьи.
+- [ ] Search-статья сохраняется до открытия sheet.
 - [ ] `ArticleCard` имеет отдельный `onArticleClick`.
-- [ ] Добавлен route `article/{provider}/{articleId}`.
-- [ ] Экран открывается из Home, Search и Favorites.
+- [ ] Один `ModalBottomSheet` владеет modal-state на уровне `MainScreen`; внешний
+  `Scaffold.paddingValues` к нему повторно не применяется.
+- [ ] Sheet открывается сразу в expanded-состоянии, занимает всю высоту на
+  телефоне и закрывается свайпом вниз, Back, scrim и
+  кнопкой.
+- [ ] Внутри sheet используются `TopAppBar` и прокручиваемый контент без второго
+  `Scaffold`.
+- [ ] Sheet открывается из Home, Search и Favorites.
+- [ ] Выбранный `ArticleKey` восстанавливается через `rememberSaveable` или
+  `SavedStateHandle` host-level ViewModel.
 - [ ] На экране видны издатель и абсолютная дата публикации.
 - [ ] Автор показывается только при наличии.
 - [ ] Заголовок и описание не обрезаются.
@@ -396,12 +515,12 @@ presentation/article/
 - [ ] GDELT не использует нелицензированные изображения издателей.
 - [ ] NewsData.io image включается только после подтверждения прав.
 - [ ] Основная кнопка содержит имя издателя и иконку внешней ссылки.
+- [ ] Добавлена зависимость `androidx.browser:browser`.
 - [ ] Внешняя страница открывается через Custom Tabs.
 - [ ] Есть fallback на `ACTION_VIEW`.
 - [ ] Разрешены только `http`/`https` URL.
 - [ ] Share передаёт оригинальный URL.
 - [ ] Кнопка избранного не запускает навигацию.
-- [ ] На detail-экране скрыта нижняя навигация.
 - [ ] Обработаны отсутствующие image/author/description/date/URL.
 - [ ] Добавлены accessibility descriptions и проверены touch targets.
 - [ ] Добавлены previews и UI-тесты.
@@ -413,4 +532,6 @@ presentation/article/
 - [GDELT Terms of Use](https://www.gdeltproject.org/about.html#termsofuse)
 - [Android: In-app browsing using Embedded Web](https://developer.android.com/develop/ui/views/layout/webapps/in-app-browsing-embedded-web)
 - [Android: Overview of Custom Tabs](https://developer.android.com/develop/ui/views/layout/webapps/overview-of-android-custom-tabs)
-
+- [Android Compose: Create a bottom sheet](https://developer.android.com/develop/ui/compose/quick-guides/content/create-bottom-sheet)
+- [Android Compose: Use Material 3 insets](https://developer.android.com/develop/ui/compose/system/material-insets)
+- [Android Compose: Animate while navigating](https://developer.android.com/develop/ui/compose/animation/quick-guide#animate-while-navigating)

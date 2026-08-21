@@ -9,12 +9,12 @@ import dagger.MapKey
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @MapKey
-annotation class NewsProviderKey(
-    val value: ProviderId
-)
+annotation class NewsProviderKey(val value: ProviderId)
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,9 +22,17 @@ abstract class NewsProviderModule {
 
     @Binds
     @Singleton
-//    @IntoMap
-//    @NewsProviderKey(ProviderId.NEWS_API)
-    abstract fun bindNewsProvider(
+    @IntoMap
+    @NewsProviderKey(ProviderId.NEWS_DATA)
+    abstract fun bindNewsDataProvider(
         provider: NewsDataProvider
+    ): NewsProvider
+
+    @Binds
+    @Singleton
+    @IntoMap
+    @NewsProviderKey(ProviderId.NEWS_API)
+    abstract fun bindNewsApiProvider(
+        provider: NewsApiProvider
     ): NewsProvider
 }

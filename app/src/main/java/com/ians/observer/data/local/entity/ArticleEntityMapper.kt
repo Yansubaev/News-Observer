@@ -33,12 +33,12 @@ fun ArticleEntity.toArticle(
 
 fun FeedArticleProjection.toArticle(): Article = article.toArticle(
     isFavorite = this.isFavorite,
-    category = this.category?.let { Category.fromValue(it) },
+    category = this.category?.let { Category.fromValueSafe(it) },
     providerId = ProviderId.fromValue(this.providerId)
 )
 
 fun FavoriteArticleProjection.toArticle() : Article = article.toArticle(
     isFavorite = true,
-    category = this.category?.let { Category.fromValue(it) },
+    category = this.category?.let { Category.fromValueSafe(it) },
     providerId = ProviderId.fromValue(this.providerId)
 )
