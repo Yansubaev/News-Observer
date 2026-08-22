@@ -35,7 +35,8 @@ import com.ians.observer.presentation.mapper.titleRes
 @Composable
 fun FavoritesScreen(
     nestedScrollConnection: NestedScrollConnection,
-    viewModel: FavoritesViewModel = hiltViewModel()
+    viewModel: FavoritesViewModel = hiltViewModel(),
+    onArticleClick: (Article) -> Unit
 ) {
     val articles by viewModel.articles.collectAsState(emptyList())
     val selectedCategory by viewModel.selectedCategoryState.collectAsState()
@@ -77,6 +78,9 @@ fun FavoritesScreen(
             } else {
                 SuccessContent(
                     articles = articles,
+                    onArticleClick = {article ->
+
+                    },
                     onFavoriteClick = { article ->
                         viewModel.removeFromFavorites(article)
 //                        articles.refresh()
@@ -90,6 +94,7 @@ fun FavoritesScreen(
 @Composable
 fun SuccessContent(
     articles: List<Article>,
+    onArticleClick: (Article) -> Unit,
     onFavoriteClick: (Article) -> Unit
 ) {
     if (articles.isEmpty()) {
@@ -111,7 +116,11 @@ fun SuccessContent(
                 count = articles.size
             ) { index ->
                 val article = articles[index]
-                ArticleCard(article = article, onFavoriteClick)
+                ArticleCard(
+                    article = article,
+                    onArticleClick = { onArticleClick(article) },
+                    onFavoriteClick = onFavoriteClick,
+                )
             }
         }
     }

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.favorites.FavoritesScreen
 import com.ians.observer.presentation.feed.FeedScreen
 import com.ians.observer.presentation.search.SearchScreen
@@ -30,7 +31,8 @@ import com.ians.observer.presentation.settings.SearchProviderSettingsScreen
 fun AppNavHost(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onArticleSelected: (Article) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -39,13 +41,22 @@ fun AppNavHost(
         enterTransition = { fadeIn(animationSpec = tween(250)) },
         exitTransition = { fadeOut(animationSpec = tween(250)) }) {
         composable(Screen.Feed.route) {
-            FeedScreen(scrollBehavior.nestedScrollConnection)
+            FeedScreen(
+                nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                onArticleClick = onArticleSelected
+            )
         }
         composable(Screen.Favorites.route) {
-            FavoritesScreen(scrollBehavior.nestedScrollConnection)
+            FavoritesScreen(
+                nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                onArticleClick = onArticleSelected
+            )
         }
         composable(Screen.Search.route) {
-            SearchScreen(scrollBehavior.nestedScrollConnection)
+            SearchScreen(
+                nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                onArticleClick = onArticleSelected
+            )
         }
 
         val enterTransition = slideInHorizontally(

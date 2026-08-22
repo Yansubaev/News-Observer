@@ -50,7 +50,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun FeedScreen(
     nestedScrollConnection: NestedScrollConnection,
-    viewModel: FeedViewModel = hiltViewModel()
+    viewModel: FeedViewModel = hiltViewModel(),
+    onArticleClick: (Article) -> Unit,
 ) {
     val articles = viewModel.articles.collectAsLazyPagingItems()
     val selectedCategory by viewModel.selectedCategoryState.collectAsStateWithLifecycle()
@@ -64,6 +65,7 @@ fun FeedScreen(
         selectedCategory = selectedCategory,
         onToggleFavoriteArticle = { viewModel.toggleFavorite(it) },
         onChangeCategory = { viewModel.changeCategory(it) },
+        onArticleClick = onArticleClick,
         nestedScrollConnection = nestedScrollConnection
     )
 }
@@ -76,6 +78,7 @@ fun FeedScreenState(
     selectedCategory: Category,
     onToggleFavoriteArticle: (Article) -> Unit,
     onChangeCategory: (Category) -> Unit,
+    onArticleClick: (Article) -> Unit,
     nestedScrollConnection: NestedScrollConnection? = null,
 ) {
     Box(
@@ -97,7 +100,8 @@ fun FeedScreenState(
                 52.dp,
                 onFavoriteClick = { article ->
                     onToggleFavoriteArticle(article)
-                }
+                },
+                onArticleClick = onArticleClick
             )
         }
     }
@@ -153,7 +157,8 @@ fun SuccessContent(
     articles: LazyPagingItems<Article>,
     nestedScrollConnection: NestedScrollConnection?,
     topPadding: Dp,
-    onFavoriteClick: (Article) -> Unit
+    onFavoriteClick: (Article) -> Unit,
+    onArticleClick: (Article) -> Unit
 ) {
     if (articles.itemCount == 0) {
         Text(
@@ -182,7 +187,11 @@ fun SuccessContent(
                 val article = articles[index]
 
                 article?.let {
-                    ArticleCard(article = it, onFavoriteClick)
+                    ArticleCard(
+                        article = it,
+                        onArticleClick = { onArticleClick(it) },
+                        onFavoriteClick = onFavoriteClick
+                    )
                 }
             }
 
@@ -308,6 +317,7 @@ fun FeedScreenPreview() {
         categories = Category.entries.toSet(),
         selectedCategory = Category.GENERAL,
         onToggleFavoriteArticle = {},
-        onChangeCategory = {}
+        onChangeCategory = {},
+        onArticleClick = {}
     )
 }

@@ -48,7 +48,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun SearchScreen(
     nestedScrollConnection: NestedScrollConnection,
-    viewModel: SearchViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel(),
+    onArticleClick: (Article) -> Unit,
 ) {
     val articles = viewModel.searchResultArticles.collectAsLazyPagingItems()
     val liveQuery by viewModel.liveQuery.collectAsStateWithLifecycle()
@@ -62,7 +63,8 @@ fun SearchScreen(
         onSearchQueryClear = { viewModel.clearSearchQuery(it) },
         onToggleFavoriteArticle = { viewModel.setFavorite(it, !it.isFavorite) },
         nestedScrollConnection = nestedScrollConnection,
-        articles = articles
+        articles = articles,
+        onArticleClick = onArticleClick
     )
 }
 
@@ -76,7 +78,8 @@ fun SearchScreenUI(
     onSearchQueryClear: (String) -> Unit,
     onToggleFavoriteArticle: (Article) -> Unit,
     nestedScrollConnection: NestedScrollConnection?,
-    articles: LazyPagingItems<Article>
+    articles: LazyPagingItems<Article>,
+    onArticleClick: (Article) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val horizontalPadding by animateDpAsState(
@@ -160,9 +163,9 @@ fun SearchScreenUI(
             articles = articles,
             nestedScrollConnection = nestedScrollConnection,
             16.dp,
-        ) {
-            onToggleFavoriteArticle(it)
-        }
+            onArticleClick = onArticleClick,
+            onFavoriteClick = onToggleFavoriteArticle
+        )
     }
 }
 
@@ -298,6 +301,7 @@ fun SearchScreenPreview() {
         {},
         onToggleFavoriteArticle = {},
         null,
-        articles
+        articles,
+        onArticleClick = {}
     )
 }

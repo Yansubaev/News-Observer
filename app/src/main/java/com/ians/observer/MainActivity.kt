@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -19,13 +20,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ians.observer.domain.model.Article
+import com.ians.observer.presentation.articlepreview.ArticleDetailsSheet
 import com.ians.observer.presentation.navigation.AppNavHost
 import com.ians.observer.presentation.navigation.Screen
 import com.ians.observer.presentation.navigation.SettingsScreen
@@ -57,94 +64,116 @@ fun MainScreen() {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var selectedArticle by remember {
+        mutableStateOf<Article?>(null)
+    }
 
-    Scaffold(topBar = {
-        val name = when (currentRoute) {
-            Screen.Feed.route -> stringResource(R.string.app_name)
-            Screen.Favorites.route -> stringResource(R.string.nav_favorites)
-            Screen.Search.route -> stringResource(R.string.nav_search)
-            SettingsScreen.Main.route -> stringResource(R.string.settings)
-            SettingsScreen.FeedProviders.route -> stringResource(SettingsScreen.FeedProviders.name)
-            SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
-            SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
-            else -> ""
-        }
-        if (currentRoute in listOf(
-                Screen.Feed.route,
-                Screen.Favorites.route,
-            ) || currentRoute in SettingsScreen.routes
-        )
-            TopAppBar(
-                title = { Text(name) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.primary
-                ),
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    if (currentRoute in SettingsScreen.routes) {
-                        IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_back),
-                                contentDescription = stringResource(R.string.cd_settings),
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    if (currentRoute in listOf(Screen.Feed.route, Screen.Favorites.route)) {
-                        IconButton(
-                            onClick = {
-                                navController.navigate(SettingsScreen.Main.route)
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.settings),
-                                contentDescription = stringResource(R.string.cd_settings)
-                            )
-                        }
-                    }
-                })
-    }, bottomBar = {
-        if (currentRoute in screens.map { it.route })
-            NavigationBar {
-
-                screens.forEach { screen ->
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(screen.iconRes),
-                                contentDescription = stringResource(screen.labelRes)
-                            )
-                        },
-                        label = { Text(stringResource(screen.labelRes)) },
-                        selected = currentRoute == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+    Box(Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                val name = when (currentRoute) {
+                    Screen.Feed.route -> stringResource(R.string.app_name)
+                    Screen.Favorites.route -> stringResource(R.string.nav_favorites)
+                    Screen.Search.route -> stringResource(R.string.nav_search)
+                    SettingsScreen.Main.route -> stringResource(R.string.settings)
+                    SettingsScreen.FeedProviders.route -> stringResource(SettingsScreen.FeedProviders.name)
+                    SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
+                    SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
+                    else -> ""
+                }
+                if (currentRoute in listOf(
+                        Screen.Feed.route,
+                        Screen.Favorites.route,
+                    ) || currentRoute in SettingsScreen.routes
+                )
+                    TopAppBar(
+                        title = { Text(name) },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            if (currentRoute in SettingsScreen.routes) {
+                                IconButton(
+                                    onClick = {
+                                        navController.popBackStack()
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.arrow_back),
+                                        contentDescription = stringResource(R.string.cd_settings),
+                                    )
                                 }
-
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = Color.Transparent
-                        )
-                    )
-                }
+                        actions = {
+                            if (currentRoute in listOf(Screen.Feed.route, Screen.Favorites.route)) {
+                                IconButton(
+                                    onClick = {
+                                        navController.navigate(SettingsScreen.Main.route)
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.settings),
+                                        contentDescription = stringResource(R.string.cd_settings)
+                                    )
+                                }
+                            }
+                        })
+            },
+            bottomBar = {
+                if (currentRoute in screens.map { it.route })
+                    NavigationBar {
 
+                        screens.forEach { screen ->
+                            NavigationBarItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(screen.iconRes),
+                                        contentDescription = stringResource(screen.labelRes)
+                                    )
+                                },
+                                label = { Text(stringResource(screen.labelRes)) },
+                                selected = currentRoute == screen.route,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    indicatorColor = Color.Transparent
+                                )
+                            )
+                        }
+
+                    }
             }
-    }) { paddingValues ->
-        AppNavHost(navController, scrollBehavior, paddingValues)
+        )
+        { paddingValues ->
+            AppNavHost(
+                navController = navController,
+                scrollBehavior = scrollBehavior,
+                paddingValues = paddingValues,
+                onArticleSelected = {
+                    selectedArticle = it
+                }
+            )
+        }
+
+        selectedArticle?.let { article ->
+            ArticleDetailsSheet(article) {
+                selectedArticle = null
+            }
+        }
     }
 }
