@@ -32,7 +32,7 @@ import com.ians.observer.R
 fun SettingsItemNavigationViewPreview() {
     SettingsItemView(
         SettingsItem.Navigation(
-            R.string.settings_sources,
+            R.string.settings_feed_providers,
             "sources",
             iconRes = R.drawable.sources,
         )

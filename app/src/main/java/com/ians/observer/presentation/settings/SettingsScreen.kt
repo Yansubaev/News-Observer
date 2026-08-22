@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.ians.observer.R
 import com.ians.observer.domain.model.NewsCountry
@@ -37,15 +38,39 @@ fun MainSettingsScreen(
 }
 
 @Composable
-fun SourcesSettingsScreen(
+fun FeedProviderSettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    SourcesSettingsScreenUI(
-        onSourceSelected = { source, selected ->
+    val selectedProviderId by viewModel.selectedFeedProvider.collectAsStateWithLifecycle()
+    val availableProviderIds = viewModel.feedProviderIds
 
-        }
-    )
+    val map = mutableMapOf<ProviderId, Boolean>()
+    for (providerId in availableProviderIds) {
+        map[providerId] = providerId == selectedProviderId
+    }
+
+    ProvidersSettingsScreenUI(map) { providerId ->
+        viewModel.selectFeedProvider(providerId)
+    }
+}
+
+@Composable
+fun SearchProviderSettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val selectedProviderId by viewModel.selectedSearchProvider.collectAsStateWithLifecycle()
+    val availableProviderIds = viewModel.searchProviderIds
+
+    val map = mutableMapOf<ProviderId, Boolean>()
+    for (providerId in availableProviderIds) {
+        map[providerId] = providerId == selectedProviderId
+    }
+
+    ProvidersSettingsScreenUI(map) { providerId ->
+        viewModel.selectSearchProvider(providerId)
+    }
 }
 
 @Composable
@@ -66,10 +91,10 @@ fun RegionSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val selectedRegion by viewModel.selectedRegionState.collectAsState()
-    RegionSettingsScreenUI(
+    CountrySettingsScreenUI(
         selectedRegion = selectedRegion,
         onRegionSelected = {
-            viewModel.selectRegion(it)
+            viewModel.selectCountry(it)
         }
     )
 }
@@ -86,9 +111,16 @@ private fun MainSettingsScreenUI(
     SettingsListView(
         listOf(
             SettingsItem.Navigation(
-                title = R.string.settings_sources,
+                title = R.string.settings_feed_providers,
                 iconRes = R.drawable.sources,
-                route = SettingsScreen.Sources.route,
+                route = SettingsScreen.FeedProviders.route,
+                onNavigate = onNavigate,
+                iconContentDescription = R.string.cd_settings_sources
+            ),
+            SettingsItem.Navigation(
+                title = R.string.settings_search_providers,
+                iconRes = R.drawable.ic_search,
+                route = SettingsScreen.SearchProviders.route,
                 onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_sources
             ),
@@ -131,24 +163,25 @@ private fun MainSettingsScreenUI(
 }
 
 @Composable
-private fun SourcesSettingsScreenUI(
-    onSourceSelected: (String, Boolean) -> Unit,
+private fun ProvidersSettingsScreenUI(
+    providers: Map<ProviderId, Boolean>,
+    onProviderSelected: (ProviderId) -> Unit,
 ) {
     val mod = Modifier
         .fillMaxWidth()
         .height(68.dp)
 
-    SettingsListView(
-        listOf(
-            SettingsItem.Checkbox(
-                title = ProviderId.NEWS_API.titleRes,
-                checked = true,
-                onCheckedChange = {
-                    onSourceSelected(ProviderId.NEWS_API.value, it)
-                },
-            )
-        ), modifier = mod
-    )
+    val list = providers.map { providerId ->
+        SettingsItem.Radiobutton(
+            title = providerId.key.titleRes,
+            selected = providerId.value,
+            onClick = {
+                onProviderSelected(providerId.key)
+            }
+        )
+    }
+
+    SettingsListView(list = list, modifier = mod)
 }
 
 @Composable
@@ -174,7 +207,7 @@ private fun LanguageSettingsScreenUI(
 }
 
 @Composable
-private fun RegionSettingsScreenUI(
+private fun CountrySettingsScreenUI(
     selectedRegion: NewsCountry,
     onRegionSelected: (NewsCountry) -> Unit = {}
 ) {

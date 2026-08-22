@@ -21,7 +21,8 @@ import com.ians.observer.presentation.search.SearchScreen
 import com.ians.observer.presentation.settings.LanguageSettingsScreen
 import com.ians.observer.presentation.settings.MainSettingsScreen
 import com.ians.observer.presentation.settings.RegionSettingsScreen
-import com.ians.observer.presentation.settings.SourcesSettingsScreen
+import com.ians.observer.presentation.settings.FeedProviderSettingsScreen
+import com.ians.observer.presentation.settings.SearchProviderSettingsScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,11 +70,19 @@ fun AppNavHost(
         }
 
         composable(
-            SettingsScreen.Sources.route,
+            SettingsScreen.FeedProviders.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
             popExitTransition = { exitTransition }) {
-            SourcesSettingsScreen(navController)
+            FeedProviderSettingsScreen(navController)
+        }
+
+        composable(
+            SettingsScreen.SearchProviders.route,
+            enterTransition = { enterTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { exitTransition }) {
+            SearchProviderSettingsScreen(navController)
         }
 
         composable(

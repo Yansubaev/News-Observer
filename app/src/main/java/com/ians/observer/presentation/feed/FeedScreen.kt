@@ -54,9 +54,13 @@ fun FeedScreen(
 ) {
     val articles = viewModel.articles.collectAsLazyPagingItems()
     val selectedCategory by viewModel.selectedCategoryState.collectAsStateWithLifecycle()
+    val availableCategories by viewModel.availableCategories.collectAsStateWithLifecycle(
+        initialValue = emptySet()
+    )
 
     FeedScreenState(
         articles = articles,
+        categories = availableCategories,
         selectedCategory = selectedCategory,
         onToggleFavoriteArticle = { viewModel.toggleFavorite(it) },
         onChangeCategory = { viewModel.changeCategory(it) },
@@ -68,6 +72,7 @@ fun FeedScreen(
 @Composable
 fun FeedScreenState(
     articles: LazyPagingItems<Article>,
+    categories: Set<Category>,
     selectedCategory: Category,
     onToggleFavoriteArticle: (Article) -> Unit,
     onChangeCategory: (Category) -> Unit,
@@ -105,9 +110,7 @@ fun FeedScreenState(
             .padding(horizontal = 16.dp, vertical = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Category.entries.toMutableList().filter {
-            it != Category.ALL
-        }.forEach { category ->
+        categories.forEach { category ->
             FilterChip(
                 selected = category == selectedCategory,
                 onClick = { onChangeCategory(category) },
@@ -302,6 +305,7 @@ fun FeedScreenPreview() {
 
     FeedScreenState(
         articles = articles,
+        categories = Category.entries.toSet(),
         selectedCategory = Category.GENERAL,
         onToggleFavoriteArticle = {},
         onChangeCategory = {}

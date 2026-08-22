@@ -1,5 +1,6 @@
 package com.ians.observer.data.remote.provider
 
+import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.domain.model.ProviderId
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,4 +19,7 @@ class NewsProviderRegistry @Inject constructor(
 
     fun requireAll(ids: Collection<ProviderId>): List<NewsProvider> =
         ids.distinct().map(::require)
+
+    fun idsSupporting(capability: ProviderCapabilities): List<ProviderId> =
+        providers.filter { it.value.capabilities.contains(capability) }.map { it.key }
 }

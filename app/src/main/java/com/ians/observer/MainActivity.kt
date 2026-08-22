@@ -64,7 +64,7 @@ fun MainScreen() {
             Screen.Favorites.route -> stringResource(R.string.nav_favorites)
             Screen.Search.route -> stringResource(R.string.nav_search)
             SettingsScreen.Main.route -> stringResource(R.string.settings)
-            SettingsScreen.Sources.route -> stringResource(SettingsScreen.Sources.name)
+            SettingsScreen.FeedProviders.route -> stringResource(SettingsScreen.FeedProviders.name)
             SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
             SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
             else -> ""

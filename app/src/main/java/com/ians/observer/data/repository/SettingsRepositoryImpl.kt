@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.ians.observer.di.SettingsDataStore
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
+import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,8 @@ class SettingsRepositoryImpl @Inject constructor(
     private object PreferencesKeys {
         val COUNTRY = stringPreferencesKey("country")
         val LANGUAGE = stringPreferencesKey("language")
-        val SEARCH_HISTORY = stringPreferencesKey("search_history")
+        val FEED_PROVIDER = stringPreferencesKey("feed_provider")
+        val SEARCH_PROVIDER = stringPreferencesKey("search_provider")
     }
 
     override suspend fun getSyncInterval(): Long {
@@ -59,4 +61,34 @@ class SettingsRepositoryImpl @Inject constructor(
                 NewsLanguage.fromCode(code)
             }
             .distinctUntilChanged()
+
+    override suspend fun setFeedProviderPreference(providerId: ProviderId) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.FEED_PROVIDER] = providerId.value
+        }
+    }
+
+    override suspend fun setSearchProviderPreference(providerId: ProviderId) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SEARCH_PROVIDER] = providerId.value
+        }
+    }
+
+    override fun observeFeedProviderPreference(): Flow<ProviderId> =
+        dataStore.data
+            .map { prefs ->
+                val value = prefs[PreferencesKeys.FEED_PROVIDER] ?: ProviderId.NEWS_DATA.value
+                ProviderId.fromValue(value)
+            }
+            .distinctUntilChanged()
+
+    override fun observeSearchProviderPreference(): Flow<ProviderId> =
+        dataStore.data
+            .map { prefs ->
+                val value = prefs[PreferencesKeys.SEARCH_PROVIDER] ?: ProviderId.NEWS_DATA.value
+                ProviderId.fromValue(value)
+            }
+            .distinctUntilChanged()
+
+
 }

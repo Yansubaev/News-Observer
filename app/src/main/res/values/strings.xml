@@ -29,7 +29,8 @@
 
 
     <string name="settings">Settings</string>
-    <string name="settings_sources">News sources</string>
+    <string name="settings_feed_providers">Top headlines sources</string>
+    <string name="settings_search_providers">Search sources</string>
     <string name="settings_language">Article language</string>
     <string name="settings_region">Region</string>
     <string name="settings_clear_cache">Clear cache</string>

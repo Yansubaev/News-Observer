@@ -65,26 +65,21 @@ class SearchViewModel @Inject constructor(
             query,
             settingRepository.observeCountryPreference(),
             settingRepository.observeLanguagePreference(),
-        ) { query, country, language ->
-            SearchParams(
-                query,
-                country,
-                language
+            settingRepository.observeSearchProviderPreference(),
+        ) { query, country, language, searchProvider ->
+            SearchSpec(
+                query = query,
+                country = country,
+                language = language,
+                providerIds = listOf(searchProvider),
+                category = null
             )
         }
             .distinctUntilChanged()
             .debounce(300)
-            .flatMapLatest { params ->
-                if (params.query.isBlank()) flowOf(PagingData.empty())
-                else articleRepository.searchNewsPaging(
-                    SearchSpec(
-                        query = params.query,
-                        language = params.language,
-                        country = params.country,
-                        category = null,
-                        providerIds = listOf(ProviderId.NEWS_DATA)
-                    )
-                )
+            .flatMapLatest { spec ->
+                if (spec.query.isBlank()) flowOf(PagingData.empty())
+                else articleRepository.searchNewsPaging(spec)
             }
             .cachedIn(viewModelScope)
 

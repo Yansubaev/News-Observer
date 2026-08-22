@@ -28,7 +28,8 @@
     <string name="recents">Недавние</string>
 
     <string name="settings">Настройки</string>
-    <string name="settings_sources">Источники новостей</string>
+    <string name="settings_feed_providers">Источники ленты новостей</string>
+    <string name="settings_search_providers">Источники для поиска</string>
     <string name="settings_language">Язык статей</string>
     <string name="settings_region">Регион</string>
     <string name="settings_clear_cache">Очистить кэш</string>
