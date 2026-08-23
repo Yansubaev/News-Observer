@@ -24,8 +24,32 @@
     <string name="nav_search">Поиск</string>
     <string name="nav_favorites">Избранное</string>
     <string name="nav_profile">Профиль</string>
-    <string name="search_news">Поиск нвостей...</string>
+    <string name="search_news">Поиск нвостей…</string>
     <string name="recents">Недавние</string>
+
+    <!-- Подробности статьи -->
+    <string name="article_details_title">Подробности</string>
+    <string name="article_details_original_publication">Оригинальная публикация</string>
+    <string name="article_details_data_provider">Данные предоставлены через %1$s</string>
+    <string name="article_details_metadata_provider">Метаданные предоставлены: %1$s</string>
+    <string name="article_details_read_on_publisher_site">Читать на сайте %1$s</string>
+    <string name="article_details_open_original">Открыть оригинал</string>
+    <string name="article_details_opens_on_publisher_site">Откроется на сайте оригинального издателя</string>
+    <string name="article_details_report_problem">Сообщить о проблеме</string>
+    <string name="article_details_original_link_unavailable">Ссылка на оригинал статьи недоступна</string>
+    <string name="article_details_share_chooser_title">Поделиться статьёй</string>
+    <plurals name="article_details_authors">
+        <item quantity="one">Автор: %1$s</item>
+        <item quantity="few">Авторы: %1$s</item>
+        <item quantity="many">Авторы: %1$s</item>
+        <item quantity="other">Авторы: %1$s</item>
+    </plurals>
+
+    <!-- Доступность экрана подробностей статьи -->
+    <string name="cd_article_details_close">Закрыть подробности статьи</string>
+    <string name="cd_article_details_add_to_favorites">Добавить в избранное</string>
+    <string name="cd_article_details_remove_from_favorites">Удалить из избранного</string>
+    <string name="cd_article_details_share">Поделиться статьёй</string>
 
     <string name="settings">Настройки</string>
     <string name="settings_feed_providers">Источники ленты новостей</string>

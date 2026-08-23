@@ -78,9 +78,7 @@ fun FavoritesScreen(
             } else {
                 SuccessContent(
                     articles = articles,
-                    onArticleClick = {article ->
-
-                    },
+                    onArticleClick = onArticleClick,
                     onFavoriteClick = { article ->
                         viewModel.removeFromFavorites(article)
 //                        articles.refresh()
