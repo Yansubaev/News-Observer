@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.2"
 coilCompose = "2.7.0"
 converterGson = "2.11.0"
 datastorePreferences = "1.2.0"
@@ -19,7 +19,7 @@ navigationCompose = "2.9.6"
 pagingCompose = "3.3.6"
 retrofit = "2.11.0"
 roomRuntime = "2.8.4"
-ksp = "2.3.2"
+ksp = "2.3.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
