@@ -4,8 +4,6 @@ import androidx.paging.PagingData
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
-import com.ians.observer.domain.model.NewsLanguage
-import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.SearchSpec
 import kotlinx.coroutines.flow.Flow
 
@@ -25,6 +23,8 @@ interface ArticleRepository {
 
     suspend fun addToFavorites(article: Article, category: Category?)
 
-    suspend fun removeFromFavorites(url: String)
+    suspend fun removeFromFavorites(id: String)
+
+    fun observeArticleById(id: String): Flow<Article?>
 
 }

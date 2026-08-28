@@ -15,17 +15,17 @@ interface ArticlePagingDao {
             refs.provider_id AS provider_id,
             feeds.category AS feed_category,
             CASE
-                WHEN favorites.article_url IS NULL THEN 0
+                WHEN favorites.article_id IS NULL THEN 0
                 ELSE 1
             END AS is_favorite
         FROM articles
         INNER JOIN article_feed_cross_refs AS refs
-            ON refs.article_url = articles.url
+            ON refs.article_id = articles.id
         INNER JOIN feeds
             ON feeds.feed_key = refs.feed_key
             AND feeds.provider_id = refs.provider_id
         LEFT JOIN favorites
-            ON favorites.article_url = articles.url
+            ON favorites.article_id = articles.id
         WHERE refs.feed_key = :feedKey
             AND refs.provider_id = :providerId
         ORDER BY refs.position

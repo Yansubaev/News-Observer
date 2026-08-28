@@ -49,7 +49,7 @@ class FavoritesViewModel @Inject constructor(
     }
 
     fun removeFromFavorites(article: Article) = viewModelScope.launch {
-        articleRepository.removeFromFavorites(article.originalUrl)
+        articleRepository.removeFromFavorites(article.id)
     }
 
 }

@@ -18,7 +18,7 @@ import com.ians.observer.data.local.entity.RemoteKeyEntity
         FavoriteEntity::class,
         FeedEntity::class
     ],
-    version = 9,
+    version = 12,
     exportSchema = false,
 )
 @TypeConverters(ListConverters::class)

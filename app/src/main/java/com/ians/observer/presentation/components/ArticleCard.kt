@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.feed
+package com.ians.observer.presentation.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +48,7 @@ import com.ians.observer.domain.model.Publisher
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 
 @Preview
@@ -57,7 +59,8 @@ private fun ArticleCardPreview() {
             id = "",
             publisher = Publisher(
                 name = "BBC",
-                id = "bbc"
+                id = "bbc",
+                websiteUrl = "https://google.com"
             ),
             authors = setOf("Denis Ians"),
             title = "Preview article",
@@ -157,7 +160,7 @@ fun ArticleCard(
 
             // Publish date
             val publishedAt = Date(article.publishedAt)
-            val formatter = SimpleDateFormat("EEEE, d MMMM HH:mm", Locale.getDefault())
+            val formatter = SimpleDateFormat("EEEE, d MMMM HH:mm", LocalLocale.current.platformLocale)
             val formattedDate = formatter.format(publishedAt)
             Text(
                 text = formattedDate,
@@ -172,7 +175,8 @@ fun ArticleCard(
 fun AnimatedFavoriteButton(
     isFavorite: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    icon: @Composable ((Color, Float) -> Unit)? = null
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isFavorite) 1.2f else 1f,
@@ -185,7 +189,7 @@ fun AnimatedFavoriteButton(
 
     val tint by animateColorAsState(
         targetValue = if (isFavorite) {
-            Color(0xFFFF6B35)
+            MaterialTheme.colorScheme.onSurfaceVariant
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
@@ -198,21 +202,24 @@ fun AnimatedFavoriteButton(
         onCheckedChange = { onClick() },
         modifier = modifier
     ) {
-        Icon(
-            painter = if (isFavorite) {
-                painterResource(R.drawable.ic_favorite_enabled)
-            } else {
-                painterResource(R.drawable.ic_favorite_disabled)
-            },
-            contentDescription = if (isFavorite) {
-                "Remove from favorites"
-            } else {
-                "Add to favorites"
-            },
-            tint = tint,
-            modifier = Modifier
-                .scale(scale)
-                .size(16.dp)
-        )
+        if (icon == null) {
+            Icon(
+                painter = if (isFavorite) {
+                    painterResource(R.drawable.ic_favorites_filled)
+                } else {
+                    painterResource(R.drawable.ic_favorites)
+                },
+                contentDescription = if (isFavorite) {
+                    stringResource(R.string.cd_article_details_remove_from_favorites)
+                } else {
+                    stringResource(R.string.cd_article_details_add_to_favorites)
+                }, tint = tint,
+                modifier = Modifier
+                    .scale(scale)
+                    .size(16.dp)
+            )
+        } else {
+            icon.invoke(tint, scale)
+        }
     }
 }

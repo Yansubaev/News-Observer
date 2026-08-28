@@ -6,9 +6,13 @@ import com.ians.observer.domain.model.Publisher
 
 fun RemoteArticle.toEntity(): ArticleEntity =
     ArticleEntity(
+        id = this.id,
         url = this.originalUrl,
+        providerId = this.providerId.value,
+        category = this.category?.value,
         publisherId = this.publisherId,
         publisherName = this.publisherName,
+        publisherWebsiteUrl = this.publisherWebsiteUrl,
         authors = this.authors,
         title = this.title,
         description = this.description,
@@ -21,7 +25,8 @@ fun RemoteArticle.toArticle(isFavorite: Boolean): Article = Article(
     id = this.id,
     publisher = Publisher(
         name = this.publisherName,
-        id = this.publisherId
+        id = this.publisherId,
+        websiteUrl = this.publisherWebsiteUrl,
     ),
     authors = this.authors,
     title = this.title,

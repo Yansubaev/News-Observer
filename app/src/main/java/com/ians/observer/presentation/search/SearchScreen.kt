@@ -239,7 +239,8 @@ fun SearchScreenPreview() {
             id = "1",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Ada Lovelace"),
             title = "Breaking News One",
@@ -256,7 +257,8 @@ fun SearchScreenPreview() {
             id = "2",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Grace Hopper"),
             title = "Breaking News Two",
@@ -273,7 +275,8 @@ fun SearchScreenPreview() {
             id = "3",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Alan Turing"),
             title = "Breaking News Three",

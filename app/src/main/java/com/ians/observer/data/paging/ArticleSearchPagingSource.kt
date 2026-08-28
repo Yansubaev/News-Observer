@@ -6,6 +6,7 @@ import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.SearchRequest
+import com.ians.observer.data.remote.provider.model.toEntity
 import com.ians.observer.data.remote.provider.model.toArticle
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
@@ -42,6 +43,7 @@ class ArticleSearchPagingSource(
             val articles = providerPage.articles.map {
                 it.toArticle(false)
             }
+            articleDao.upsertArticles(providerPage.articles.map { it.toEntity() })
 
             LoadResult.Page(
                 data = articles,

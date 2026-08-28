@@ -10,16 +10,16 @@ import androidx.room.PrimaryKey
     tableName = "favorites",
     foreignKeys = [ForeignKey(
         entity = ArticleEntity::class,
-        parentColumns = ["url"],
-        childColumns = ["article_url"],
+        parentColumns = ["id"],
+        childColumns = ["article_id"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index("article_url")]
+    indices = [Index("article_id")]
 )
 data class FavoriteEntity(
     @PrimaryKey
-    @ColumnInfo(name = "article_url")
-    val articleUrl: String,
+    @ColumnInfo(name = "article_id")
+    val articleId: String,
 
     @ColumnInfo(name = "saved_at")
     val savedAt: Long,

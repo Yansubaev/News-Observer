@@ -135,12 +135,12 @@ class ArticleRemoteMediator(
                 }
 
                 val refs = providerPage.articles
-                    .distinctBy { it.originalUrl }
+                    .distinctBy { it.id }
                     .mapIndexed { index, article ->
                         ArticleFeedCrossRefEntity(
                             feedKey = feedKey,
                             providerId = newsProvider.id.value,
-                            articleUrl = article.originalUrl,
+                            articleId = article.id,
                             position = startPosition + index
                         )
                     }

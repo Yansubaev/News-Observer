@@ -83,7 +83,7 @@ class FeedViewModel @Inject constructor(
 
     fun toggleFavorite(article: Article) = viewModelScope.launch {
         if (article.isFavorite) {
-            articleRepository.removeFromFavorites(article.originalUrl)
+            articleRepository.removeFromFavorites(article.id)
         } else {
             articleRepository.addToFavorites(article, _selectedCategoryState.value)
         }

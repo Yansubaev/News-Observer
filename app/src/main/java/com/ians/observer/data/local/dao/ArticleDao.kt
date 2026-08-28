@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Upsert
 import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.FavoriteEntity
+import com.ians.observer.data.local.projection.ArticleDetailsProjection
 import com.ians.observer.data.local.projection.FavoriteArticleProjection
 import kotlinx.coroutines.flow.Flow
 
@@ -21,7 +22,7 @@ interface ArticleDao {
     @Upsert
     suspend fun upsertArticles(articles: List<ArticleEntity>)
 
-    @Query("SELECT * FROM articles ORDER BY published_at DESC, url DESC")
+    @Query("SELECT * FROM articles ORDER BY published_at DESC, id DESC")
     fun getAllArticles(): Flow<List<ArticleEntity>>
 
     @Query(
@@ -32,7 +33,7 @@ interface ArticleDao {
             favorites.category AS favorite_category
         FROM articles
         INNER JOIN favorites
-            ON favorites.article_url = articles.url
+            ON favorites.article_id = articles.id
         ORDER BY favorites.saved_at DESC
     """
     )
@@ -40,8 +41,9 @@ interface ArticleDao {
 
     @Query(
         """
-        SELECT * FROM favorites
-        WHERE article_url = :url LIMIT 1
+        SELECT favorites.* FROM favorites
+        INNER JOIN articles ON articles.id = favorites.article_id
+        WHERE articles.url = :url LIMIT 1
     """
     )
     suspend fun getFavoriteByUrl(url: String): FavoriteEntity?
@@ -54,18 +56,57 @@ interface ArticleDao {
             favorites.category AS favorite_category
         FROM articles
         INNER JOIN favorites
-            ON favorites.article_url = articles.url 
+            ON favorites.article_id = articles.id
         WHERE favorites.category = :category
         ORDER BY favorites.saved_at DESC
     """
     )
     fun getFavoriteArticlesForCategory(category: String): Flow<List<FavoriteArticleProjection>>
 
-    @Query("SELECT article_url FROM favorites")
+    @Query(
+        """
+        SELECT articles.url FROM articles
+        INNER JOIN favorites ON favorites.article_id = articles.id
+        """
+    )
     fun getFavoriteArticlesUrls(): Flow<List<String>>
 
     @Query("SELECT * FROM articles WHERE url = :url")
     suspend fun getArticleByUrl(url: String): ArticleEntity?
+
+    @Query(
+        """
+        SELECT
+            articles.*,
+            COALESCE(
+                (SELECT source_provider_id FROM favorites
+                    WHERE article_id = articles.id),
+                (SELECT provider_id FROM article_feed_cross_refs
+                    WHERE article_id = articles.id LIMIT 1),
+                articles.article_provider_id
+            ) AS details_provider_id,
+            COALESCE(
+                (SELECT category FROM favorites
+                    WHERE article_id = articles.id),
+                (SELECT feeds.category
+                    FROM article_feed_cross_refs AS refs
+                    INNER JOIN feeds
+                        ON feeds.feed_key = refs.feed_key
+                        AND feeds.provider_id = refs.provider_id
+                    WHERE refs.article_id = articles.id
+                        AND feeds.category IS NOT NULL
+                    LIMIT 1),
+                articles.article_category
+            ) AS details_category,
+            EXISTS(
+                SELECT 1 FROM favorites WHERE article_id = articles.id
+            ) AS is_favorite
+        FROM articles
+        WHERE articles.id = :id
+        LIMIT 1
+        """
+    )
+    fun getArticleById(id: String): Flow<ArticleDetailsProjection?>
 
     @Query(
         """
@@ -83,7 +124,7 @@ interface ArticleDao {
     @Query(
         """
         DELETE FROM favorites
-        WHERE article_url = :url
+        WHERE article_id = (SELECT id FROM articles WHERE url = :url LIMIT 1)
     """
     )
     suspend fun deleteFavoriteByUrl(url: String)
@@ -98,7 +139,7 @@ interface ArticleDao {
 
         insertFavorite(
             FavoriteEntity(
-                articleUrl = article.url,
+                articleId = article.id,
                 savedAt = System.currentTimeMillis(),
                 category = category,
                 sourceProviderId = providerId
@@ -106,8 +147,13 @@ interface ArticleDao {
         )
     }
 
-    @Query("DELETE FROM favorites WHERE article_url = :url")
-    suspend fun remoteFromFavorites(url: String)
+    @Query(
+        """
+        DELETE FROM favorites
+        WHERE article_id = (SELECT id FROM articles WHERE id = :id LIMIT 1)
+        """
+    )
+    suspend fun removeFromFavorites(id: String)
 
     @Delete
     suspend fun deleteArticle(article: ArticleEntity)
@@ -120,11 +166,11 @@ interface ArticleDao {
         DELETE FROM articles
         WHERE NOT EXISTS(
             SELECT 1 FROM favorites
-            WHERE favorites.article_url = articles.url
+            WHERE favorites.article_id = articles.id
         )
         AND NOT EXISTS(
             SELECT 1 FROM article_feed_cross_refs
-            WHERE article_feed_cross_refs.article_url = articles.url
+            WHERE article_feed_cross_refs.article_id = articles.id
         )
     """
     )
@@ -140,7 +186,7 @@ interface ArticleDao {
         """
         SELECT EXISTS(
             SELECT 1 FROM favorites 
-            WHERE article_url = :url
+            WHERE article_id = (SELECT id FROM articles WHERE url = :url LIMIT 1)
         ) 
     """
     )
@@ -155,4 +201,3 @@ interface ArticleDao {
     )
     fun getFavoriteCategories(): Flow<List<String>>
 }
-

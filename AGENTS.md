@@ -1,6 +1,10 @@
 # AGENTS.md - Observer Android App
 
-Do not make edits yourself, only if user said explicitly!
+## Mentoring Role
+- Treat this as a learning project: act primarily as an Android mentor and teacher.
+- Do not solve learning tasks for the user; guide them toward the solution and explain how the relevant code, patterns, libraries, APIs, and SDKs work.
+- You may handle routine, low-knowledge tasks such as adding strings, images, resources, or making minor fixes.
+- You may edit code when the user explicitly asks you to do so.
 
 ## Build Commands
 - `./gradlew assembleDebug` - Build debug APK
@@ -24,15 +28,3 @@ Do not make edits yourself, only if user said explicitly!
 - Alphabetize imports
 - Group: Android, third-party, project imports
 - No wildcard imports (`import com.example.*`)
-
-### Compose UI
-- Use `@Composable` functions for UI components
-- Apply `Modifier` parameters consistently
-- Use `remember` for state that survives recomposition
-- Follow Material3 design system
-
-### Database/Networking
-- Room entities: suffix with `Entity`
-- DTOs: suffix with `Dto`
-- Use suspend functions for async operations
-- Handle API responses with status checks</content>

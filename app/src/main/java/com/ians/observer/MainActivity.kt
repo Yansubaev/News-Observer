@@ -22,16 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.articlepreview.ArticleDetailsSheet
 import com.ians.observer.presentation.navigation.AppNavHost
 import com.ians.observer.presentation.navigation.Screen
@@ -64,8 +63,8 @@ fun MainScreen() {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    var selectedArticle by remember {
-        mutableStateOf<Article?>(null)
+    var selectedArticleId by rememberSaveable {
+        mutableStateOf<String?>(null)
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -165,15 +164,18 @@ fun MainScreen() {
                 scrollBehavior = scrollBehavior,
                 paddingValues = paddingValues,
                 onArticleSelected = {
-                    selectedArticle = it
+                    selectedArticleId = it.id
                 }
             )
         }
 
-        selectedArticle?.let { article ->
-            ArticleDetailsSheet(article) {
-                selectedArticle = null
-            }
+        selectedArticleId?.let { articleId ->
+            ArticleDetailsSheet(
+                articleId = articleId,
+                onDismissed = {
+                    selectedArticleId = null
+                }
+            )
         }
     }
 }

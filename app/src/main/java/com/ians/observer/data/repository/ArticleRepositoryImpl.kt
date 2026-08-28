@@ -153,9 +153,13 @@ class ArticleRepositoryImpl @Inject constructor(
     ) {
         database.articleDao().addToFavorites(
             article = ArticleEntity(
+                id = article.id,
                 url = article.originalUrl,
+                providerId = article.providerId.value,
+                category = article.category?.value,
                 publisherId = article.publisher.id,
                 publisherName = article.publisher.name,
+                publisherWebsiteUrl = article.publisher.websiteUrl,
                 authors = article.authors,
                 title = article.title,
                 description = article.description,
@@ -168,7 +172,13 @@ class ArticleRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun removeFromFavorites(url: String) {
-        database.articleDao().remoteFromFavorites(url)
+    override suspend fun removeFromFavorites(id: String) {
+        database.articleDao().removeFromFavorites(id)
+    }
+
+    override fun observeArticleById(id: String): Flow<Article?> {
+        return database.articleDao().getArticleById(id).map {
+            it?.toArticle()
+        }
     }
 }

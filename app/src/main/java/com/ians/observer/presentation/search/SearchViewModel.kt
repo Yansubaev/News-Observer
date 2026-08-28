@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -36,16 +37,10 @@ class SearchViewModel @Inject constructor(
     private val searchHistoryRepository: SearchHistoryRepository
 ) : ViewModel() {
 
-    private data class SearchParams(
-        val query: String,
-        val country: NewsCountry,
-        val language: NewsLanguage,
-    )
-
-    private val _query = MutableStateFlow<String>("")
+    private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    private val _liveQuery = MutableStateFlow<String>("")
+    private val _liveQuery = MutableStateFlow("")
     val liveQuery: StateFlow<String> = _liveQuery.asStateFlow()
 
     val searchHistory = liveQuery
@@ -76,7 +71,7 @@ class SearchViewModel @Inject constructor(
             )
         }
             .distinctUntilChanged()
-            .debounce(300)
+            .debounce(300.milliseconds)
             .flatMapLatest { spec ->
                 if (spec.query.isBlank()) flowOf(PagingData.empty())
                 else articleRepository.searchNewsPaging(spec)
@@ -115,7 +110,7 @@ class SearchViewModel @Inject constructor(
         if (shouldBeFavorite) {
             articleRepository.addToFavorites(article, null)
         } else {
-            articleRepository.removeFromFavorites(article.originalUrl)
+            articleRepository.removeFromFavorites(article.id)
         }
     }
 }

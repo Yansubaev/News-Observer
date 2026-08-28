@@ -13,6 +13,7 @@ fun NewsDataArticleDto.toRemoteArticle() =
         providerId = ProviderId.NEWS_DATA,
         publisherId = this.sourceId,
         publisherName = this.sourceName,
+        publisherWebsiteUrl = this.sourceUrl,
         authors = this.creator?.toSet(),
         title = this.title,
         description = this.description,

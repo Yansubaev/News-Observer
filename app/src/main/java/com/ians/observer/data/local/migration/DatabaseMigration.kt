@@ -4,6 +4,137 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TEMP TABLE migration_9_10_article_feed_cross_refs AS
+            SELECT feed_key, provider_id, article_url, position
+            FROM article_feed_cross_refs
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            CREATE TEMP TABLE migration_9_10_favorites AS
+            SELECT article_url, saved_at, category, source_provider_id
+            FROM favorites
+            """.trimIndent(),
+        )
+
+        db.execSQL("ALTER TABLE articles ADD COLUMN id TEXT")
+        db.execSQL("UPDATE articles SET id = url")
+
+        db.execSQL(
+            """
+            CREATE TABLE articles_new (
+                id TEXT NOT NULL,
+                url TEXT NOT NULL,
+                article_provider_id TEXT NOT NULL,
+                article_category TEXT,
+                publisher_id TEXT,
+                publisher_name TEXT NOT NULL,
+                publisher_domain TEXT,
+                authors TEXT,
+                title TEXT NOT NULL,
+                description TEXT,
+                image_url TEXT,
+                published_at INTEGER NOT NULL,
+                content TEXT,
+                PRIMARY KEY(id)
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO articles_new
+            SELECT
+                id,
+                url,
+                COALESCE(
+                    (SELECT source_provider_id FROM migration_9_10_favorites
+                        WHERE article_url = articles.url),
+                    (SELECT provider_id FROM migration_9_10_article_feed_cross_refs
+                        WHERE article_url = articles.url LIMIT 1),
+                    'news-api'
+                ),
+                NULL,
+                publisher_id,
+                publisher_name,
+                NULL,
+                authors,
+                title,
+                description, image_url, published_at, content
+            FROM articles
+            """.trimIndent(),
+        )
+
+        db.execSQL("DROP TABLE article_feed_cross_refs")
+        db.execSQL("DROP TABLE favorites")
+        db.execSQL("DROP TABLE articles")
+        db.execSQL("ALTER TABLE articles_new RENAME TO articles")
+
+        db.execSQL(
+            """
+            CREATE TABLE article_feed_cross_refs (
+                feed_key TEXT NOT NULL,
+                provider_id TEXT NOT NULL,
+                article_id TEXT NOT NULL,
+                position INTEGER NOT NULL,
+                PRIMARY KEY(feed_key, provider_id, article_id),
+                FOREIGN KEY(article_id) REFERENCES articles(id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE,
+                FOREIGN KEY(feed_key, provider_id) REFERENCES feeds(feed_key, provider_id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "CREATE INDEX index_article_feed_cross_refs_article_id " +
+                "ON article_feed_cross_refs(article_id)",
+        )
+        db.execSQL(
+            "CREATE INDEX index_article_feed_cross_refs_feed_key_provider_id " +
+                "ON article_feed_cross_refs(feed_key, provider_id)",
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX index_article_feed_cross_refs_feed_key_provider_id_position " +
+                "ON article_feed_cross_refs(feed_key, provider_id, position)",
+        )
+        db.execSQL(
+            """
+            INSERT INTO article_feed_cross_refs (feed_key, provider_id, article_id, position)
+            SELECT feed_key, provider_id, article_url, position
+            FROM migration_9_10_article_feed_cross_refs
+            """.trimIndent(),
+        )
+
+        db.execSQL(
+            """
+            CREATE TABLE favorites (
+                article_id TEXT NOT NULL,
+                saved_at INTEGER NOT NULL,
+                category TEXT,
+                source_provider_id TEXT NOT NULL,
+                PRIMARY KEY(article_id),
+                FOREIGN KEY(article_id) REFERENCES articles(id)
+                    ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL("CREATE INDEX index_favorites_article_id ON favorites(article_id)")
+        db.execSQL(
+            """
+            INSERT INTO favorites (article_id, saved_at, category, source_provider_id)
+            SELECT article_url, saved_at, category, source_provider_id
+            FROM migration_9_10_favorites
+            """.trimIndent(),
+        )
+
+        db.execSQL("DROP TABLE migration_9_10_article_feed_cross_refs")
+        db.execSQL("DROP TABLE migration_9_10_favorites")
+    }
+}
+
 val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

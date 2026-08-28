@@ -44,6 +44,7 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
+import com.ians.observer.presentation.components.ArticleCard
 import com.ians.observer.presentation.mapper.titleRes
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -258,7 +259,8 @@ fun FeedScreenPreview() {
             id = "1",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Ada Lovelace"),
             title = "Breaking News One",
@@ -275,7 +277,8 @@ fun FeedScreenPreview() {
             id = "2",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Grace Hopper"),
             title = "Breaking News Two",
@@ -292,7 +295,8 @@ fun FeedScreenPreview() {
             id = "3",
             publisher = Publisher(
                 name = "Labubu",
-                id = "labubu"
+                id = "labubu",
+                websiteUrl = "https://google.com",
             ),
             authors = setOf("Alan Turing"),
             title = "Breaking News Three",

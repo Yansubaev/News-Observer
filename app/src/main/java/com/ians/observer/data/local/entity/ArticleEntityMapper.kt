@@ -1,5 +1,6 @@
 package com.ians.observer.data.local.entity
 
+import com.ians.observer.data.local.projection.ArticleDetailsProjection
 import com.ians.observer.data.local.projection.FavoriteArticleProjection
 import com.ians.observer.data.local.projection.FeedArticleProjection
 import com.ians.observer.domain.model.Article
@@ -13,11 +14,12 @@ fun ArticleEntity.toArticle(
     providerId: ProviderId
 ): Article {
     return Article(
-        id = this.url,
+        id = this.id,
         providerId = providerId,
         publisher = Publisher(
             name = this.publisherName,
-            id = this.publisherId
+            id = this.publisherId,
+            websiteUrl = this.publisherWebsiteUrl,
         ),
         authors = this.authors,
         title = this.title,
@@ -41,4 +43,10 @@ fun FavoriteArticleProjection.toArticle() : Article = article.toArticle(
     isFavorite = true,
     category = this.category?.let { Category.fromValueSafe(it) },
     providerId = ProviderId.fromValue(this.providerId)
+)
+
+fun ArticleDetailsProjection.toArticle(): Article = article.toArticle(
+    isFavorite = isFavorite,
+    category = category?.let(Category::fromValueSafe),
+    providerId = ProviderId.fromValue(providerId),
 )

@@ -7,12 +7,12 @@ import androidx.room.Index
 
 @Entity(
     tableName = "article_feed_cross_refs",
-    primaryKeys = ["feed_key", "provider_id", "article_url"],
+    primaryKeys = ["feed_key", "provider_id", "article_id"],
     foreignKeys = [
         ForeignKey(
             entity = ArticleEntity::class,
-            parentColumns = ["url"],
-            childColumns = ["article_url"],
+            parentColumns = ["id"],
+            childColumns = ["article_id"],
             onDelete = ForeignKey.CASCADE,
         ),
         ForeignKey(
@@ -23,7 +23,7 @@ import androidx.room.Index
         )
     ],
     indices = [
-        Index("article_url"),
+        Index("article_id"),
         Index(value = ["feed_key", "provider_id"]),
         Index(value = ["feed_key", "provider_id", "position"], unique = true),
     ]
@@ -35,8 +35,8 @@ data class ArticleFeedCrossRefEntity(
     @ColumnInfo(name = "provider_id")
     val providerId: String,
 
-    @ColumnInfo(name = "article_url")
-    val articleUrl: String,
+    @ColumnInfo(name = "article_id")
+    val articleId: String,
 
     @ColumnInfo(name = "position")
     val position: Int
