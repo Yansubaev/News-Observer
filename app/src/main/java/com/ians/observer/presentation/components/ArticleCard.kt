@@ -31,8 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -47,8 +47,6 @@ import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
 
 
 @Preview
@@ -87,13 +85,13 @@ fun ArticleCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onArticleClick, role = Role.Button),
-        shape = RectangleShape,
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(0.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             article.imageUrl?.let { imageUrl ->
                 AsyncImage(

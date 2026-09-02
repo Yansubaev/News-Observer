@@ -2,7 +2,6 @@ package com.ians.observer.presentation.articlepreview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.repository.ArticleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

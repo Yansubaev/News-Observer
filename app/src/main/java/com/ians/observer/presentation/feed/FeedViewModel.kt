@@ -8,8 +8,6 @@ import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
-import com.ians.observer.domain.model.NewsCountry
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingRepository
@@ -43,7 +41,8 @@ class FeedViewModel @Inject constructor(
         settingsRepository.observeFeedProviderPreference()
             .map { providerId ->
                 newsProviderRegistry
-                    .require(providerId)
+                    .require(providerId.takeIf { it in newsProviderRegistry.availableIds }
+                        ?: ProviderId.NEWS_DATA)
                     .supportedCategories
             }
             .distinctUntilChanged()
@@ -61,11 +60,14 @@ class FeedViewModel @Inject constructor(
             settingsRepository.observeLanguagePreference(),
             settingsRepository.observeFeedProviderPreference(),
         ) { category, country, language, feedProvider ->
+            val effectiveProviderId =
+                feedProvider.takeIf { it in newsProviderRegistry.availableIds }
+                    ?: ProviderId.NEWS_DATA
             FeedSpec(
                 category = category,
                 country = country,
                 language = language,
-                providerIds = listOf(feedProvider)
+                providerIds = listOf(effectiveProviderId)
             )
         }
             .distinctUntilChanged()

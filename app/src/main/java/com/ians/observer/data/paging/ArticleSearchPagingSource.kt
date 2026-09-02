@@ -6,14 +6,13 @@ import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.SearchRequest
-import com.ians.observer.data.remote.provider.model.toEntity
 import com.ians.observer.data.remote.provider.model.toArticle
+import com.ians.observer.data.remote.provider.model.toEntity
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
 
 class ArticleSearchPagingSource(
     private val newsProvider: NewsProvider,

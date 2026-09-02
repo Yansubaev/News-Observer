@@ -4,13 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.data.remote.provider.model.ProviderCapabilities
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.NewsCountry
+import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject

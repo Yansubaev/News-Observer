@@ -178,8 +178,8 @@ fun SuccessContent(
 
         LazyColumn(
             modifier = mod,
-            contentPadding = PaddingValues(24.dp, topPadding, 24.dp, 24.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            contentPadding = PaddingValues(16.dp, topPadding, 16.dp, 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(
                 count = articles.itemCount,

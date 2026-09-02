@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.domain.model.Article
-import com.ians.observer.domain.model.NewsCountry
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.SearchSpec
 import com.ians.observer.domain.repository.ArticleRepository
@@ -34,7 +33,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class SearchViewModel @Inject constructor(
     private val articleRepository: ArticleRepository,
     private val settingRepository: SettingRepository,
-    private val searchHistoryRepository: SearchHistoryRepository
+    private val searchHistoryRepository: SearchHistoryRepository,
+    private val newsProviderRegistry: NewsProviderRegistry,
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
@@ -62,11 +62,14 @@ class SearchViewModel @Inject constructor(
             settingRepository.observeLanguagePreference(),
             settingRepository.observeSearchProviderPreference(),
         ) { query, country, language, searchProvider ->
+            val effectiveProviderId =
+                searchProvider.takeIf { it in newsProviderRegistry.availableIds }
+                    ?: ProviderId.NEWS_DATA
             SearchSpec(
                 query = query,
                 country = country,
                 language = language,
-                providerIds = listOf(searchProvider),
+                providerIds = listOf(effectiveProviderId),
                 category = null
             )
         }

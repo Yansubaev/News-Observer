@@ -17,14 +17,10 @@ val localProperties = Properties().apply {
     }
 }
 
-val newsApiKey = localProperties.getProperty("NEWS_API_KEY")
+val newsApiKey: String? = localProperties.getProperty("NEWS_API_KEY")
     ?: System.getenv("NEWS_API_KEY")
-    ?: error(
-        "NEWS_API_KEY is not configured. " +
-                "Add it to local.properties or define the NEWS_API_KEY environment variable."
-    )
 
-val newsDataApiKey = localProperties.getProperty("NEWS_DATA_API_KEY")
+val newsDataApiKey: String = localProperties.getProperty("NEWS_DATA_API_KEY")
     ?: System.getenv("NEWS_DATA_API_KEY")
     ?: error(
         "NEWS_DATA_API_KEY is not configured. " +
@@ -46,8 +42,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // NewsAPI
-        buildConfigField("String", "NEWS_API_KEY", "\"$newsApiKey\"")
         buildConfigField("String", "NEWS_DATA_API_KEY", "\"$newsDataApiKey\"")
     }
 
@@ -58,6 +52,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+
+        debug {
+            buildConfigField("String", "NEWS_API_KEY", "\"${newsApiKey.orEmpty()}\"")
+
         }
     }
     compileOptions {
