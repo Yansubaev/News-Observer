@@ -26,4 +26,7 @@ interface RemoteKeyDao {
 
     @Query("DELETE FROM remote_keys WHERE feed_key = :feedKey")
     suspend fun deleteByFeed(feedKey: String)
+
+    @Query("DELETE FROM remote_keys")
+    suspend fun deleteAllRemoteKeys()
 }

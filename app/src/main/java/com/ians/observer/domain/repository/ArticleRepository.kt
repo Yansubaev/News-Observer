@@ -27,4 +27,6 @@ interface ArticleRepository {
 
     fun observeArticleById(id: String): Flow<Article?>
 
+    suspend fun clearCachedArticles()
+
 }

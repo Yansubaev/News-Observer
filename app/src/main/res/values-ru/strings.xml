@@ -69,6 +69,12 @@
     <string name="settings_clear_cache">Очистить кэш</string>
     <string name="settings_about">О приложении</string>
     <string name="settings_notifications">Уведомления о новых статьях</string>
+    <string name="settings_clear_cache_dialog_title">Очистить кэш новостей?</string>
+    <string name="settings_clear_cache_dialog_message">Загруженные статьи будут удалены. Избранное, история поиска и настройки сохранятся.</string>
+    <string name="settings_clear_cache_confirm">Очистить</string>
+    <string name="settings_clear_cache_cancel">Отмена</string>
+    <string name="settings_cache_cleared">Кэш очищен</string>
+    <string name="settings_cache_clear_failed">Не удалось очистить кэш</string>
 
     <string name="cd_settings_sources">Иконка источников новостей</string>
     <string name="cd_settings_language">Иконка языка статей</string>

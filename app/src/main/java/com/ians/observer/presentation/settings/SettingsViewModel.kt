@@ -7,9 +7,13 @@ import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingRepository,
-    private val providerRegistry: NewsProviderRegistry
+    private val articleRepository: ArticleRepository,
+    private val providerRegistry: NewsProviderRegistry,
 ) : ViewModel() {
 
     val feedProviderIds = providerRegistry.idsSupporting(ProviderCapabilities.TOP_HEADLINES)
@@ -51,6 +56,14 @@ class SettingsViewModel @Inject constructor(
             initialValue = ProviderId.NEWS_DATA
         )
 
+    sealed interface SettingsEvent {
+        data object CacheCleared : SettingsEvent
+        data object CacheClearFailed : SettingsEvent
+    }
+
+    private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
     fun selectCountry(region: NewsCountry) = viewModelScope.launch {
         settingsRepository.setCountryPreference(region)
     }
@@ -67,4 +80,14 @@ class SettingsViewModel @Inject constructor(
         settingsRepository.setSearchProviderPreference(providerId)
     }
 
+    fun clearCachedArticles() = viewModelScope.launch {
+        try {
+            articleRepository.clearCachedArticles()
+            _events.send(SettingsEvent.CacheCleared)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _events.send(SettingsEvent.CacheClearFailed)
+        }
+    }
 }

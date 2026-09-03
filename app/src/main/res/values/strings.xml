@@ -68,6 +68,12 @@
     <string name="settings_clear_cache">Clear cache</string>
     <string name="settings_about">About</string>
     <string name="settings_notifications">New article notifications</string>
+    <string name="settings_clear_cache_dialog_title">Clear cached articles?</string>
+    <string name="settings_clear_cache_dialog_message">Downloaded articles will be removed. Favorites, search history, and settings will be kept.</string>
+    <string name="settings_clear_cache_confirm">Clear</string>
+    <string name="settings_clear_cache_cancel">Cancel</string>
+    <string name="settings_cache_cleared">Cache cleared</string>
+    <string name="settings_cache_clear_failed">Couldn’t clear cache</string>
 
     <string name="cd_settings_sources">News sources icon</string>
     <string name="cd_settings_language">Article language icon</string>

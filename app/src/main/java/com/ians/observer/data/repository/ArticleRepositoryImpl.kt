@@ -5,6 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.toArticle
@@ -179,6 +180,14 @@ class ArticleRepositoryImpl @Inject constructor(
     override fun observeArticleById(id: String): Flow<Article?> {
         return database.articleDao().getArticleById(id).map {
             it?.toArticle()
+        }
+    }
+
+    override suspend fun clearCachedArticles() {
+        database.withTransaction {
+            database.remoteKeyDao().deleteAllRemoteKeys()
+            database.feedDao().deleteAllFeeds()
+            database.articleDao().deleteOrphanedArticles()
         }
     }
 }
