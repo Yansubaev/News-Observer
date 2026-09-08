@@ -9,17 +9,17 @@ import kotlinx.coroutines.flow.Flow
 
 interface ArticleRepository {
 
-    fun getTopHeadlinesPaging(spec: FeedSpec, syncInterval: Long): Flow<PagingData<Article>>
+    fun observeTopHeadlinesPaging(spec: FeedSpec, syncInterval: Long): Flow<PagingData<Article>>
 
     fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>>
 
-    fun getFavoriteArticles(): Flow<List<Article>>
+    fun observeFavoriteArticles(): Flow<List<Article>>
 
     fun observeFavoriteUrls(): Flow<Set<String>>
 
-    fun getFavoriteArticlesForCategory(category: Category): Flow<List<Article>>
+    fun observeFavoriteArticlesForCategory(category: Category): Flow<List<Article>>
 
-    fun getFavoriteCategories(): Flow<List<Category>>
+    fun observeFavoriteCategories(): Flow<List<Category>>
 
     suspend fun addToFavorites(article: Article, category: Category?)
 
@@ -28,5 +28,6 @@ interface ArticleRepository {
     fun observeArticleById(id: String): Flow<Article?>
 
     suspend fun clearCachedArticles()
+
 
 }

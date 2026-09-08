@@ -3,6 +3,7 @@ package com.ians.observer.presentation.articlepreview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ians.observer.domain.repository.ArticleRepository
+import com.ians.observer.domain.usecase.favorite.SetArticleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ArticleDetailsViewModel @Inject constructor(
+    private val setArticleFavoriteUseCase: SetArticleFavoriteUseCase,
+
     private val articleRepository: ArticleRepository
 ) : ViewModel() {
     private val selectedArticleId = MutableStateFlow<String?>(null)
@@ -63,10 +66,10 @@ class ArticleDetailsViewModel @Inject constructor(
         val article = (selectedArticleState.value as? ArticleDetailsUiState.Content)?.article
             ?: return@launch
 
-        if (shouldBeFavorite) {
-            articleRepository.addToFavorites(article, article.category)
-        } else {
-            articleRepository.removeFromFavorites(article.id)
-        }
+        setArticleFavoriteUseCase(
+            article = article,
+            shouldBeFavorite = shouldBeFavorite,
+            category = article.category
+        )
     }
 }

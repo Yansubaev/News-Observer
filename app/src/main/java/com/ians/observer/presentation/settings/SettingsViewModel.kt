@@ -2,15 +2,13 @@ package com.ians.observer.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ians.observer.data.remote.provider.NewsProviderRegistry
-import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
-import com.ians.observer.domain.repository.ArticleRepository
-import com.ians.observer.domain.repository.SettingRepository
+import com.ians.observer.domain.repository.NewsProvidersRepository
+import com.ians.observer.domain.repository.SettingsRepository
+import com.ians.observer.domain.usecase.settings.ClearArticleCacheUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -20,13 +18,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingRepository,
-    private val articleRepository: ArticleRepository,
-    private val providerRegistry: NewsProviderRegistry,
-) : ViewModel() {
+    private val clearArticleCacheUseCase: ClearArticleCacheUseCase,
 
-    val feedProviderIds = providerRegistry.idsSupporting(ProviderCapabilities.TOP_HEADLINES)
-    val searchProviderIds = providerRegistry.idsSupporting(ProviderCapabilities.SEARCH)
+    private val settingsRepository: SettingsRepository,
+    private val newsProvidersRepository: NewsProvidersRepository,
+    ) : ViewModel() {
+
+    val feedProviderIds = newsProvidersRepository.getTopHeadlinesCapableProviderIds()
+    val searchProviderIds = newsProvidersRepository.getSearchCapableProviderIds()
 
     val selectedRegionState = settingsRepository.observeCountryPreference()
         .stateIn(
@@ -81,13 +80,13 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearCachedArticles() = viewModelScope.launch {
-        try {
-            articleRepository.clearCachedArticles()
-            _events.send(SettingsEvent.CacheCleared)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            _events.send(SettingsEvent.CacheClearFailed)
-        }
+        clearArticleCacheUseCase(
+            onSuccess = {
+                _events.send(SettingsEvent.CacheCleared)
+            },
+            onFailed = {
+                _events.send(SettingsEvent.CacheClearFailed)
+            }
+        )
     }
 }

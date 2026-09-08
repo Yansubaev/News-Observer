@@ -5,7 +5,7 @@ import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import kotlinx.coroutines.flow.Flow
 
-interface SettingRepository {
+interface SettingsRepository {
     suspend fun getSyncInterval(): Long
 
     suspend fun setCountryPreference(country: NewsCountry)

@@ -5,11 +5,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.di.SettingsDataStore
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
-import com.ians.observer.domain.repository.SettingRepository
+import com.ians.observer.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -19,8 +20,9 @@ import javax.inject.Inject
 
 class SettingsRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    @param:SettingsDataStore private val dataStore: DataStore<Preferences>
-) : SettingRepository {
+    @param:SettingsDataStore private val dataStore: DataStore<Preferences>,
+    private val newsProviderRegistry: NewsProviderRegistry,
+) : SettingsRepository {
 
 
     private object PreferencesKeys {
@@ -78,7 +80,9 @@ class SettingsRepositoryImpl @Inject constructor(
         dataStore.data
             .map { prefs ->
                 val value = prefs[PreferencesKeys.FEED_PROVIDER] ?: ProviderId.NEWS_DATA.value
-                ProviderId.fromValue(value)
+                val feedProvider = ProviderId.fromValue(value)
+                feedProvider.takeIf { it in newsProviderRegistry.availableIds }
+                    ?: ProviderId.NEWS_DATA
             }
             .distinctUntilChanged()
 
@@ -86,7 +90,9 @@ class SettingsRepositoryImpl @Inject constructor(
         dataStore.data
             .map { prefs ->
                 val value = prefs[PreferencesKeys.SEARCH_PROVIDER] ?: ProviderId.NEWS_DATA.value
-                ProviderId.fromValue(value)
+                val searchProvider = ProviderId.fromValue(value)
+                searchProvider.takeIf { it in newsProviderRegistry.availableIds }
+                    ?: ProviderId.NEWS_DATA
             }
             .distinctUntilChanged()
 

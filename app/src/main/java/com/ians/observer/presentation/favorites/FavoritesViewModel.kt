@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.repository.ArticleRepository
+import com.ians.observer.domain.usecase.favorite.ObserveFavoriteArticlesUseCase
+import com.ians.observer.domain.usecase.favorite.ObserveFavoriteCategoriesUseCase
+import com.ians.observer.domain.usecase.favorite.SetArticleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -20,36 +23,36 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
-    private val articleRepository: ArticleRepository
+    private val setArticleFavoriteUseCase: SetArticleFavoriteUseCase,
+    private val observeFavoriteArticlesUseCase: ObserveFavoriteArticlesUseCase,
+    private val observeFavoriteCategoriesUseCase: ObserveFavoriteCategoriesUseCase,
 ) : ViewModel() {
 
     private val _selectedCategoryState = MutableStateFlow(Category.ALL)
     val selectedCategoryState: StateFlow<Category> = _selectedCategoryState.asStateFlow()
 
     val categories: StateFlow<List<Category>> =
-        articleRepository.getFavoriteCategories().map { strings ->
-            listOf(Category.ALL) + strings
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
+        observeFavoriteCategoriesUseCase()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val articles: Flow<List<Article>> = _selectedCategoryState.flatMapLatest { category ->
-        if (category == Category.ALL) {
-            articleRepository.getFavoriteArticles()
-        } else {
-            articleRepository.getFavoriteArticlesForCategory(category)
-        }
-    }
+    val articles: Flow<List<Article>> = _selectedCategoryState
+        .flatMapLatest(observeFavoriteArticlesUseCase::invoke)
 
     fun changeCategory(category: Category) {
         _selectedCategoryState.value = category
     }
 
     fun removeFromFavorites(article: Article) = viewModelScope.launch {
-        articleRepository.removeFromFavorites(article.id)
+        setArticleFavoriteUseCase(
+            article = article,
+            shouldBeFavorite = false,
+            category = article.category
+        )
     }
 
 }

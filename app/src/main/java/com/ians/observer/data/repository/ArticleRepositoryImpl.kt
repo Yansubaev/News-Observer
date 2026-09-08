@@ -40,7 +40,7 @@ class ArticleRepositoryImpl @Inject constructor(
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun getTopHeadlinesPaging(
+    override fun observeTopHeadlinesPaging(
         spec: FeedSpec,
         syncInterval: Long,
     ): Flow<PagingData<Article>> = flow {
@@ -114,7 +114,7 @@ class ArticleRepositoryImpl @Inject constructor(
         ).flow
     }
 
-    override fun getFavoriteArticles(): Flow<List<Article>> {
+    override fun observeFavoriteArticles(): Flow<List<Article>> {
         return database.articleDao().getFavoriteArticles()
             .map { entities ->
                 entities.map {
@@ -130,8 +130,9 @@ class ArticleRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getFavoriteArticlesForCategory(category: Category): Flow<List<Article>> {
-        return database.articleDao().getFavoriteArticlesForCategory(category.value)
+    override fun observeFavoriteArticlesForCategory(category: Category): Flow<List<Article>> {
+        return if (category == Category.ALL) observeFavoriteArticles()
+        else database.articleDao().getFavoriteArticlesForCategory(category.value)
             .map { entities ->
                 entities.map {
                     it.toArticle()
@@ -139,7 +140,7 @@ class ArticleRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getFavoriteCategories(): Flow<List<Category>> {
+    override fun observeFavoriteCategories(): Flow<List<Category>> {
         return database.articleDao().getFavoriteCategories()
             .map { strings ->
                 strings.mapNotNull {
