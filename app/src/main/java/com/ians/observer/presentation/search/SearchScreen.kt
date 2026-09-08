@@ -1,17 +1,19 @@
 package com.ians.observer.presentation.search
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DockedSearchBar
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -86,6 +89,12 @@ fun SearchScreenUI(
         targetValue = if (expanded) 12.dp else 24.dp,
         label = "search_bar_padding"
     )
+    // DockedSearchBar otherwise enforces 240.dp for its expanded content.
+    val searchBarMaxHeight = SearchBarDefaults.InputFieldHeight +
+        DividerDefaults.Thickness +
+        SearchHistoryVerticalPadding * 2 +
+        SearchHistoryHeaderHeight +
+        (SearchHistoryItemHeight + SearchHistoryItemSpacing) * searchHistory.size
 
     Column(
         modifier = Modifier
@@ -95,7 +104,8 @@ fun SearchScreenUI(
         DockedSearchBar(
             modifier = Modifier
                 .padding(horizontal = horizontalPadding)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .heightIn(max = searchBarMaxHeight),
 
             inputField = {
                 SearchBarDefaults.InputField(
@@ -142,19 +152,30 @@ fun SearchScreenUI(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 12.dp)
+                    .padding(
+                        horizontal = SearchHistoryHorizontalPadding,
+                        vertical = SearchHistoryVerticalPadding
+                    )
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(SearchHistoryItemSpacing)
             ) {
                 Text(
                     stringResource(R.string.recents),
                     style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.height(SearchHistoryHeaderHeight)
                 )
 
                 for (entry in searchHistory) {
-                    RecentQuery(entry) { onSearchQueryClear(entry) }
+                    RecentQuery(
+                        text = entry,
+                        onClick = {
+                            onQueryChanged(entry)
+                            onSearchRequested(entry)
+                            expanded = false
+                        },
+                        onClearClick = { onSearchQueryClear(entry) }
+                    )
                 }
             }
         }
@@ -173,6 +194,7 @@ fun SearchScreenUI(
 fun RecentsList(
     modifier: Modifier = Modifier,
     list: List<String>,
+    onQueryClick: (String) -> Unit,
     onClearClick: (String) -> Unit
 ) {
     Column(
@@ -183,7 +205,11 @@ fun RecentsList(
         Text("Recents", style = MaterialTheme.typography.labelSmall)
 
         for (entry in list) {
-            RecentQuery(entry) { onClearClick(entry) }
+            RecentQuery(
+                text = entry,
+                onClick = { onQueryClick(entry) },
+                onClearClick = { onClearClick(entry) }
+            )
         }
     }
 }
@@ -192,14 +218,17 @@ fun RecentsList(
 fun RecentQuery(
     text: String,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit,
     onClearClick: () -> Unit
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(SearchHistoryItemHeight)
+            .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-
-        ) {
+    ) {
         Icon(
             painterResource(R.drawable.watch),
             contentDescription = "watch icon",
@@ -211,14 +240,14 @@ fun RecentQuery(
         Text(
             text,
             style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         IconButton(
             onClick = onClearClick,
-            modifier = Modifier
-                .weight(0.1f)
-                .aspectRatio(1f),
+            modifier = Modifier.size(SearchHistoryItemHeight),
         ) {
             Icon(
                 painter = painterResource(R.drawable.baseline_close_24),
@@ -230,6 +259,11 @@ fun RecentQuery(
     }
 }
 
+private val SearchHistoryHeaderHeight = 32.dp
+private val SearchHistoryHorizontalPadding = 12.dp
+private val SearchHistoryItemHeight = 48.dp
+private val SearchHistoryItemSpacing = 16.dp
+private val SearchHistoryVerticalPadding = 12.dp
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

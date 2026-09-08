@@ -2,6 +2,7 @@ package com.ians.observer.domain.usecase.search
 
 import androidx.paging.PagingData
 import androidx.paging.testing.asSnapshot
+import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
@@ -9,8 +10,12 @@ import com.ians.observer.domain.model.SearchSpec
 import com.ians.observer.domain.usecase.fake.FakeArticleRepository
 import com.ians.observer.domain.usecase.fake.FakeSettingsRepository
 import com.ians.observer.domain.usecase.fake.testArticle
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,5 +76,37 @@ class SearchArticlesUseCaseTest {
         )
         assertTrue(articles.first { it.id == favoriteArticle.id }.isFavorite)
         assertFalse(articles.first { it.id == regularArticle.id }.isFavorite)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `favorite change creates a new paging generation`() = runTest {
+        val article = testArticle(
+            id = "article",
+            originalUrl = "https://example.com/article",
+        )
+        val articleRepository = FakeArticleRepository().apply {
+            searchPagingFlowFactory = {
+                flowOf(PagingData.from(listOf(article)))
+            }
+        }
+        val useCase = SearchArticlesUseCase(
+            articleRepository = articleRepository,
+            settingsRepository = FakeSettingsRepository(),
+        )
+
+        val generations = mutableListOf<PagingData<Article>>()
+        val collectionJob = launch {
+            useCase("android").take(2).toList(generations)
+        }
+
+        runCurrent()
+        articleRepository.favoriteUrls.value = setOf(article.originalUrl)
+        collectionJob.join()
+
+        val articles = flowOf(generations.last()).asSnapshot()
+
+        assertEquals(2, articleRepository.searchRequests.size)
+        assertTrue(articles.single().isFavorite)
     }
 }

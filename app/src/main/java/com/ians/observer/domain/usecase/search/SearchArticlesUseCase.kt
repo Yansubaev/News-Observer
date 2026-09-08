@@ -23,26 +23,37 @@ class SearchArticlesUseCase @Inject constructor(
             settingsRepository.observeCountryPreference(),
             settingsRepository.observeLanguagePreference(),
             settingsRepository.observeSearchProviderPreference(),
-        ) { country, language, searchProvider ->
-            SearchSpec(
-                query = query,
-                country = country,
-                language = language,
-                providerIds = listOf(searchProvider),
-                category = null
+            articleRepository.observeFavoriteUrls(),
+        ) { country, language, searchProvider, favoriteUrls ->
+            SearchParameters(
+                spec = SearchSpec(
+                    query = query,
+                    country = country,
+                    language = language,
+                    providerIds = listOf(searchProvider),
+                    category = null
+                ),
+                favoriteUrls = favoriteUrls
             )
         }
             .distinctUntilChanged()
-            .flatMapLatest { spec ->
-                if (spec.query.isBlank()) flowOf(PagingData.empty())
-                else articleRepository.searchNewsPaging(spec)
-            }
-            .combine(articleRepository.observeFavoriteUrls()) { pagingData, favoriteUrls ->
-                pagingData.map { article ->
-                    article.copy(
-                        isFavorite = article.originalUrl in favoriteUrls
-                    )
+            .flatMapLatest { parameters ->
+                if (parameters.spec.query.isBlank()) {
+                    flowOf(PagingData.empty())
+                } else {
+                    articleRepository.searchNewsPaging(parameters.spec)
+                        .map { pagingData ->
+                            pagingData.map { article ->
+                                article.copy(
+                                    isFavorite = article.originalUrl in parameters.favoriteUrls
+                                )
+                            }
+                        }
                 }
             }
-
 }
+
+private data class SearchParameters(
+    val spec: SearchSpec,
+    val favoriteUrls: Set<String>,
+)

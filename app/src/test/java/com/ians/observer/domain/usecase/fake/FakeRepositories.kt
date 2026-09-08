@@ -30,6 +30,7 @@ internal class FakeArticleRepository : ArticleRepository {
 
     var topHeadlinesPagingFlow: Flow<PagingData<Article>> = flowOf(PagingData.empty())
     var searchPagingFlow: Flow<PagingData<Article>> = flowOf(PagingData.empty())
+    var searchPagingFlowFactory: (() -> Flow<PagingData<Article>>)? = null
     val favoriteArticles = MutableStateFlow<List<Article>>(emptyList())
     val favoriteUrls = MutableStateFlow<Set<String>>(emptySet())
     val favoriteCategories = MutableStateFlow<List<Category>>(emptyList())
@@ -50,7 +51,7 @@ internal class FakeArticleRepository : ArticleRepository {
 
     override fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>> {
         searchRequests += spec
-        return searchPagingFlow
+        return searchPagingFlowFactory?.invoke() ?: searchPagingFlow
     }
 
     override fun observeFavoriteArticles(): Flow<List<Article>> = favoriteArticles
