@@ -19,10 +19,10 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.favorites.FavoritesScreen
 import com.ians.observer.presentation.feed.FeedScreen
 import com.ians.observer.presentation.search.SearchScreen
+import com.ians.observer.presentation.settings.FeedProviderSettingsScreen
 import com.ians.observer.presentation.settings.LanguageSettingsScreen
 import com.ians.observer.presentation.settings.MainSettingsScreen
 import com.ians.observer.presentation.settings.RegionSettingsScreen
-import com.ians.observer.presentation.settings.FeedProviderSettingsScreen
 import com.ians.observer.presentation.settings.SearchProviderSettingsScreen
 
 
@@ -76,7 +76,8 @@ fun AppNavHost(
             SettingsScreen.Main.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { exitTransition }) {
+            popExitTransition = { exitTransition }
+        ) {
             MainSettingsScreen(navController)
         }
 
@@ -84,7 +85,8 @@ fun AppNavHost(
             SettingsScreen.FeedProviders.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { exitTransition }) {
+            popExitTransition = { exitTransition }
+        ) {
             FeedProviderSettingsScreen(navController)
         }
 
@@ -92,7 +94,8 @@ fun AppNavHost(
             SettingsScreen.SearchProviders.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { exitTransition }) {
+            popExitTransition = { exitTransition }
+        ) {
             SearchProviderSettingsScreen(navController)
         }
 
@@ -100,7 +103,8 @@ fun AppNavHost(
             SettingsScreen.Language.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { exitTransition }) {
+            popExitTransition = { exitTransition }
+        ) {
             LanguageSettingsScreen()
         }
 
@@ -108,7 +112,8 @@ fun AppNavHost(
             SettingsScreen.Region.route,
             enterTransition = { enterTransition },
             popEnterTransition = { popEnterTransition },
-            popExitTransition = { exitTransition }) {
+            popExitTransition = { exitTransition }
+        ) {
             RegionSettingsScreen()
         }
     }

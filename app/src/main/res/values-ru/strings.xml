@@ -76,6 +76,16 @@
     <string name="settings_cache_cleared">Кэш очищен</string>
     <string name="settings_cache_clear_failed">Не удалось очистить кэш</string>
 
+    <!-- О приложении -->
+    <string name="about_app_description">Следите за последними новостями, ищите статьи и сохраняйте избранное из разных источников.</string>
+    <string name="about_version">Версия %1$s</string>
+    <string name="about_news_sources">Источники новостей</string>
+    <string name="about_news_attribution">Новостные материалы и метаданные предоставляются сторонними сервисами.</string>
+    <string name="about_source_code">Исходный код</string>
+    <string name="about_privacy_policy">Политика конфиденциальности</string>
+    <string name="about_open_source_licenses">Лицензии открытого ПО</string>
+    <string name="about_close">Закрыть</string>
+
     <string name="cd_settings_sources">Иконка источников новостей</string>
     <string name="cd_settings_language">Иконка языка статей</string>
     <string name="cd_settings_region">Иконка региона</string>

@@ -1,7 +1,9 @@
 package com.ians.observer.presentation.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -30,11 +33,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import com.ians.observer.BuildConfig
 import com.ians.observer.R
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
@@ -48,7 +51,12 @@ fun MainSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+
     var showClearCacheDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showAboutDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -82,6 +90,9 @@ fun MainSettingsScreen(
             },
             onClearCacheClick = {
                 showClearCacheDialog = true
+            },
+            onAboutClicked = {
+                showAboutDialog = true
             }
         )
 
@@ -103,6 +114,15 @@ fun MainSettingsScreen(
             onConfirm = {
                 showClearCacheDialog = false
                 viewModel.clearCachedArticles()
+            }
+        )
+    }
+
+    if (showAboutDialog) {
+        AboutAlertDialog(
+            versionName = BuildConfig.VERSION_NAME,
+            onDismiss = {
+                showAboutDialog = false
             }
         )
     }
@@ -175,6 +195,7 @@ private fun MainSettingsScreenUI(
     onNavigate: (String) -> Unit = {},
     onClearCacheClick: () -> Unit = {},
     onAchievementsToggled: (Boolean) -> Unit = {},
+    onAboutClicked: () -> Unit = {}
 ) {
     val mod = Modifier
         .fillMaxWidth()
@@ -227,7 +248,7 @@ private fun MainSettingsScreenUI(
                 title = R.string.settings_about,
                 iconRes = R.drawable.info,
                 value = "",
-                onClick = {},
+                onClick = onAboutClicked,
                 iconContentDescription = R.string.cd_settings_about
             ),
         ), modifier = mod
@@ -345,6 +366,58 @@ fun ClearCacheDialog(
             }
         }
     )
+}
+
+@Composable
+fun AboutAlertDialog(
+    versionName: String,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.app_name))
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(stringResource(R.string.about_app_description))
+
+                Text(
+                    text = stringResource(
+                        R.string.about_version,
+                        versionName
+                    ),
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                HorizontalDivider()
+
+                Text(
+                    text = stringResource(R.string.about_news_sources),
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                Text(
+                    text = stringResource(R.string.provider_news_api) +
+                            " • " +
+                            stringResource(R.string.provider_news_data)
+                )
+
+                Text(
+                    text = stringResource(R.string.about_news_attribution),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.about_close))
+            }
+        }
+    )
+
 }
 
 @Preview(showBackground = true, showSystemUi = true)
