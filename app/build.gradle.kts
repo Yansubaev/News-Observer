@@ -116,7 +116,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     // Testing
+    testImplementation(libs.androidx.paging.testing)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
