@@ -24,8 +24,19 @@
     <string name="nav_search">Поиск</string>
     <string name="nav_saved">Сохранённое</string>
     <string name="nav_profile">Профиль</string>
-    <string name="search_news">Поиск нвостей…</string>
+    <string name="search_news">Поиск новостей…</string>
     <string name="recents">Недавние</string>
+    <string name="search_prompt_title">Поиск новостей</string>
+    <string name="search_prompt_message">Введите запрос, чтобы найти статьи по всем источникам.</string>
+    <string name="search_no_results">По запросу «%1$s» ничего не найдено</string>
+
+    <!-- Состояния списка статей -->
+    <string name="list_error_title">Не удалось загрузить статьи</string>
+    <string name="list_error_message">Проверьте подключение и попробуйте ещё раз.</string>
+    <string name="list_append_error">Не удалось загрузить ещё статьи</string>
+    <string name="list_refresh_failed">Не удалось обновить</string>
+    <string name="action_retry">Повторить</string>
+    <string name="cd_loading_articles">Загрузка статей</string>
 
     <!-- Подробности статьи -->
     <string name="article_details_title">Подробности</string>

@@ -3,23 +3,21 @@ package com.ians.observer.presentation.feed
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,30 +25,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
-import com.ians.observer.R
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
-import com.ians.observer.presentation.components.ArticleCard
+import com.ians.observer.presentation.components.PagedArticleList
+import com.ians.observer.presentation.components.RefreshErrorSnackbar
+import com.ians.observer.presentation.components.isRemoteRefreshing
+import com.ians.observer.presentation.components.refreshError
 import com.ians.observer.presentation.mapper.titleRes
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun FeedScreen(
     nestedScrollConnection: NestedScrollConnection,
+    snackbarHostState: SnackbarHostState,
     viewModel: FeedViewModel = hiltViewModel(),
     onArticleClick: (Article) -> Unit,
 ) {
@@ -64,6 +61,7 @@ fun FeedScreen(
         articles = articles,
         categories = availableCategories,
         selectedCategory = selectedCategory,
+        snackbarHostState = snackbarHostState,
         onToggleFavoriteArticle = { viewModel.toggleFavorite(it) },
         onChangeCategory = { viewModel.changeCategory(it) },
         onArticleClick = onArticleClick,
@@ -80,31 +78,52 @@ fun FeedScreenState(
     onToggleFavoriteArticle: (Article) -> Unit,
     onChangeCategory: (Category) -> Unit,
     onArticleClick: (Article) -> Unit,
+    snackbarHostState: SnackbarHostState? = null,
     nestedScrollConnection: NestedScrollConnection? = null,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        if (articles.itemCount == 0) {
-            Text(
+    val loadState = articles.loadState
+
+    // The pull indicator only speaks for refreshes of an already visible list; when there is
+    // nothing on screen the skeletons carry the message instead.
+    val isRefreshing = loadState.isRemoteRefreshing && articles.itemCount > 0
+
+    RefreshErrorSnackbar(
+        error = loadState.refreshError,
+        hasContent = articles.itemCount > 0,
+        snackbarHostState = snackbarHostState,
+        onRetry = { articles.retry() }
+    )
+
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        isRefreshing = isRefreshing,
+        state = pullToRefreshState,
+        onRefresh = { articles.refresh() },
+        indicator = {
+            // Offset so the spinner lands below the floating category chips instead of behind them.
+            PullToRefreshDefaults.Indicator(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .align(Alignment.Center),
-                text = stringResource(R.string.no_articles)
-            )
-        } else {
-            SuccessContent(
-                articles = articles,
-                nestedScrollConnection = nestedScrollConnection,
-                52.dp,
-                onFavoriteClick = { article ->
-                    onToggleFavoriteArticle(article)
-                },
-                onArticleClick = onArticleClick
+                    .align(Alignment.TopCenter)
+                    .padding(top = CategoryBarHeight),
+                isRefreshing = isRefreshing,
+                state = pullToRefreshState
             )
         }
+    ) {
+        PagedArticleList(
+            articles = articles,
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                top = CategoryBarHeight,
+                end = 16.dp,
+                bottom = 24.dp
+            ),
+            nestedScrollConnection = nestedScrollConnection,
+            onArticleClick = onArticleClick,
+            onFavoriteClick = onToggleFavoriteArticle
+        )
     }
 
     Row(
@@ -129,127 +148,9 @@ fun FeedScreenState(
             )
         }
     }
-
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun InitialContent() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Ready to test API!",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Click a button above to load news",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun SuccessContent(
-    articles: LazyPagingItems<Article>,
-    nestedScrollConnection: NestedScrollConnection?,
-    topPadding: Dp,
-    onFavoriteClick: (Article) -> Unit,
-    onArticleClick: (Article) -> Unit
-) {
-    if (articles.itemCount == 0) {
-        Text(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            text = stringResource(R.string.no_articles),
-            style = MaterialTheme.typography.bodyLarge
-        )
-    } else {
-        val mod = if (nestedScrollConnection == null)
-            Modifier.fillMaxSize() else
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(nestedScrollConnection)
-
-        LazyColumn(
-            modifier = mod,
-            contentPadding = PaddingValues(16.dp, topPadding, 16.dp, 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(
-                count = articles.itemCount,
-                key = articles.itemKey { article -> article.originalUrl }
-            ) { index ->
-                val article = articles[index]
-
-                article?.let {
-                    ArticleCard(
-                        article = it,
-                        onArticleClick = { onArticleClick(it) },
-                        onFavoriteClick = onFavoriteClick
-                    )
-                }
-            }
-
-            item {
-                when (val state = articles.loadState.append) {
-                    is LoadState.Loading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    is LoadState.Error -> {
-                        ErrorContent("ERROR")
-                    }
-
-                    is LoadState.NotLoading -> {
-                        if (articles.itemCount == 0) {
-                            InitialContent()
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ErrorContentPreview() {
-    ErrorContent("Mock error text")
-}
-
-@Composable
-fun ErrorContent(message: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Error",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
+private val CategoryBarHeight = 52.dp
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

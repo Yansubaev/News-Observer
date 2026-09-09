@@ -16,6 +16,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -113,6 +116,7 @@ fun MainScreen(
     var selectedArticleId by rememberSaveable {
         mutableStateOf<String?>(null)
     }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(articleFromNotification) {
         articleFromNotification?.let { articleId ->
@@ -123,6 +127,7 @@ fun MainScreen(
 
     Box(Modifier.fillMaxSize()) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 val name = when (currentRoute) {
                     Screen.Feed.route -> stringResource(R.string.app_name)
@@ -216,6 +221,7 @@ fun MainScreen(
             AppNavHost(
                 navController = navController,
                 scrollBehavior = scrollBehavior,
+                snackbarHostState = snackbarHostState,
                 paddingValues = paddingValues,
                 onArticleSelected = {
                     selectedArticleId = it.id

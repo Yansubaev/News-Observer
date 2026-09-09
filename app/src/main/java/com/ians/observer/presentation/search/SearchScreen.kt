@@ -3,13 +3,16 @@ package com.ians.observer.presentation.search
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DockedSearchBar
@@ -17,8 +20,10 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,17 +50,24 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
-import com.ians.observer.presentation.feed.SuccessContent
+import com.ians.observer.presentation.components.ArticleListMessage
+import com.ians.observer.presentation.components.PagedArticleList
+import com.ians.observer.presentation.components.RefreshErrorSnackbar
+import com.ians.observer.presentation.components.isRemoteRefreshing
+import com.ians.observer.presentation.components.refreshError
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun SearchScreen(
     nestedScrollConnection: NestedScrollConnection,
+    snackbarHostState: SnackbarHostState,
     viewModel: SearchViewModel = hiltViewModel(),
     onArticleClick: (Article) -> Unit,
 ) {
     val articles = viewModel.searchResultArticles.collectAsLazyPagingItems()
     val liveQuery by viewModel.liveQuery.collectAsStateWithLifecycle()
+    val submittedQuery by viewModel.queryState.collectAsStateWithLifecycle()
+    val hasQuery by viewModel.hasQuery.collectAsStateWithLifecycle()
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
 
     SearchScreenUI(
@@ -67,7 +79,10 @@ fun SearchScreen(
         onToggleFavoriteArticle = { viewModel.setFavorite(it, !it.isFavorite) },
         nestedScrollConnection = nestedScrollConnection,
         articles = articles,
-        onArticleClick = onArticleClick
+        onArticleClick = onArticleClick,
+        submittedQuery = submittedQuery,
+        hasQuery = hasQuery,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -83,6 +98,9 @@ fun SearchScreenUI(
     nestedScrollConnection: NestedScrollConnection?,
     articles: LazyPagingItems<Article>,
     onArticleClick: (Article) -> Unit,
+    submittedQuery: String = "",
+    hasQuery: Boolean = false,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val horizontalPadding by animateDpAsState(
@@ -180,38 +198,74 @@ fun SearchScreenUI(
             }
         }
 
-        SuccessContent(
+        SearchResults(
             articles = articles,
+            hasQuery = hasQuery,
+            submittedQuery = submittedQuery,
+            snackbarHostState = snackbarHostState,
             nestedScrollConnection = nestedScrollConnection,
-            16.dp,
             onArticleClick = onArticleClick,
-            onFavoriteClick = onToggleFavoriteArticle
+            onToggleFavoriteArticle = onToggleFavoriteArticle
         )
     }
 }
 
+/**
+ * Search has no pull-to-refresh: results are replaced by a new query, not refreshed. Progress is
+ * shown in two ways instead — a thin bar under the search field while previous results are still
+ * on screen, and skeletons (via [PagedArticleList]) when there is nothing to keep.
+ */
 @Composable
-fun RecentsList(
-    modifier: Modifier = Modifier,
-    list: List<String>,
-    onQueryClick: (String) -> Unit,
-    onClearClick: (String) -> Unit
+private fun ColumnScope.SearchResults(
+    articles: LazyPagingItems<Article>,
+    hasQuery: Boolean,
+    submittedQuery: String,
+    snackbarHostState: SnackbarHostState?,
+    nestedScrollConnection: NestedScrollConnection?,
+    onArticleClick: (Article) -> Unit,
+    onToggleFavoriteArticle: (Article) -> Unit,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text("Recents", style = MaterialTheme.typography.labelSmall)
+    val loadState = articles.loadState
+    val hasResults = articles.itemCount > 0
 
-        for (entry in list) {
-            RecentQuery(
-                text = entry,
-                onClick = { onQueryClick(entry) },
-                onClearClick = { onClearClick(entry) }
-            )
+    // Reserve the height unconditionally so results do not jump when the bar appears.
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(SearchProgressBarHeight)
+            .padding(horizontal = 24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (loadState.isRemoteRefreshing && hasResults) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
     }
+
+    RefreshErrorSnackbar(
+        error = loadState.refreshError,
+        hasContent = hasResults,
+        snackbarHostState = snackbarHostState,
+        onRetry = { articles.retry() }
+    )
+
+    if (!hasQuery) {
+        ArticleListMessage(
+            modifier = Modifier.weight(1f),
+            title = stringResource(R.string.search_prompt_title),
+            message = stringResource(R.string.search_prompt_message)
+        )
+        return
+    }
+
+    PagedArticleList(
+        articles = articles,
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(16.dp),
+        nestedScrollConnection = nestedScrollConnection,
+        emptyMessage = stringResource(R.string.search_no_results, submittedQuery),
+        onArticleClick = onArticleClick,
+        onFavoriteClick = onToggleFavoriteArticle
+    )
 }
 
 @Composable
@@ -264,6 +318,7 @@ private val SearchHistoryHorizontalPadding = 12.dp
 private val SearchHistoryItemHeight = 48.dp
 private val SearchHistoryItemSpacing = 16.dp
 private val SearchHistoryVerticalPadding = 12.dp
+private val SearchProgressBarHeight = 12.dp
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

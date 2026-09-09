@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,6 +43,18 @@ class SearchViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
+        )
+
+    /**
+     * Whether a search has actually been requested. Paging load states cannot tell "nothing typed
+     * yet" apart from "nothing found", so the distinction is kept here instead.
+     */
+    val hasQuery: StateFlow<Boolean> = queryState
+        .map { query -> query.isNotBlank() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
         )
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)

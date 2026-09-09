@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ import com.ians.observer.presentation.settings.SearchProviderSettingsScreen
 fun AppNavHost(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
+    snackbarHostState: SnackbarHostState,
     paddingValues: PaddingValues,
     onArticleSelected: (Article) -> Unit
 ) {
@@ -43,6 +45,7 @@ fun AppNavHost(
         composable(Screen.Feed.route) {
             FeedScreen(
                 nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                snackbarHostState = snackbarHostState,
                 onArticleClick = onArticleSelected
             )
         }
@@ -55,6 +58,7 @@ fun AppNavHost(
         composable(Screen.Search.route) {
             SearchScreen(
                 nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                snackbarHostState = snackbarHostState,
                 onArticleClick = onArticleSelected
             )
         }

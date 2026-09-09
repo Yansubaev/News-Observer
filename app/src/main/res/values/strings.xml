@@ -26,6 +26,17 @@
     <string name="nav_profile">Profile</string>
     <string name="search_news">Search news…</string>
     <string name="recents">Recents</string>
+    <string name="search_prompt_title">Search for news</string>
+    <string name="search_prompt_message">Type a query to find articles across your sources.</string>
+    <string name="search_no_results">Nothing found for “%1$s”</string>
+
+    <!-- Article list states -->
+    <string name="list_error_title">Couldn’t load articles</string>
+    <string name="list_error_message">Check your connection and try again.</string>
+    <string name="list_append_error">Couldn’t load more articles</string>
+    <string name="list_refresh_failed">Couldn’t refresh</string>
+    <string name="action_retry">Try again</string>
+    <string name="cd_loading_articles">Loading articles</string>
 
     <!-- Article details -->
     <string name="article_details_title">Details</string>
