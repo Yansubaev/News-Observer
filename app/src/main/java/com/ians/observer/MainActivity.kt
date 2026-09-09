@@ -6,8 +6,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -109,7 +126,7 @@ fun MainScreen(
     onNotificationArticleHandled: () -> Unit = {}
 ) {
     val navController = rememberNavController()
-    val screens = listOf(Screen.Feed, Screen.Search, Screen.Saved)
+    val screens = Screen.bottomNavItems
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -117,6 +134,19 @@ fun MainScreen(
         mutableStateOf<String?>(null)
     }
     val snackbarHostState = remember { SnackbarHostState() }
+    // Where the settings circle should grow from. Unspecified until the button has been laid out.
+    var settingsButtonCenter by remember { mutableStateOf(Offset.Unspecified) }
+    // Last route that shows an app bar, kept while the bar collapses; null once it is fully gone.
+    var topBarRoute by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(currentRoute) {
+        topBarRoute = when {
+            currentRoute == null -> topBarRoute
+            currentRoute in SettingsScreen.routes -> currentRoute
+            currentRoute in listOf(Screen.Feed.route, Screen.Saved.route) -> currentRoute
+            else -> null
+        }
+    }
 
     LaunchedEffect(articleFromNotification) {
         articleFromNotification?.let { articleId ->
@@ -129,30 +159,58 @@ fun MainScreen(
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                val name = when (currentRoute) {
-                    Screen.Feed.route -> stringResource(R.string.app_name)
-                    Screen.Saved.route -> stringResource(R.string.nav_saved)
-                    Screen.Search.route -> stringResource(R.string.nav_search)
-                    SettingsScreen.Main.route -> stringResource(R.string.settings)
-                    SettingsScreen.FeedProviders.route -> stringResource(SettingsScreen.FeedProviders.name)
-                    SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
-                    SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
-                    else -> ""
-                }
-                if (currentRoute in listOf(
-                        Screen.Feed.route,
-                        Screen.Saved.route,
-                    ) || currentRoute in SettingsScreen.routes
-                )
+                // Search has no app bar. Rather than letting it blink out of existence, the bar
+                // collapses upwards: its bottom edge travels to the top while the content below
+                // grows into the freed space, because Scaffold animates its padding along with it.
+                val hasTopBar = topBarRoute != null
+
+                Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                    // Always holds the status bar strip. Scaffold takes the content's top padding
+                    // from the measured height of this whole slot and only falls back to the window
+                    // insets once the slot is 0x0, so letting the bar shrink all the way to nothing
+                    // would drag the content up under the status bar and snap it back at the end.
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsTopHeight(WindowInsets.statusBars)
+                    )
+
+                // The route is latched while the bar is on screen, so the title, the back arrow and
+                // the settings button stay as they were for the whole collapse instead of switching
+                // to the incoming screen's ones mid-animation.
+                AnimatedVisibility(
+                    visible = hasTopBar,
+                    enter = expandVertically(
+                        expandFrom = Alignment.Top,
+                        animationSpec = tween(TopBarAnimationMillis)
+                    ) + fadeIn(tween(TopBarAnimationMillis)),
+                    exit = shrinkVertically(
+                        shrinkTowards = Alignment.Top,
+                        animationSpec = tween(TopBarAnimationMillis)
+                    ) + fadeOut(tween(TopBarAnimationMillis))
+                ) {
+                    val name = when (topBarRoute) {
+                        Screen.Feed.route -> stringResource(R.string.app_name)
+                        Screen.Saved.route -> stringResource(R.string.nav_saved)
+                        SettingsScreen.Main.route -> stringResource(R.string.settings)
+                        SettingsScreen.FeedProviders.route -> stringResource(SettingsScreen.FeedProviders.name)
+                        SettingsScreen.SearchProviders.route -> stringResource(SettingsScreen.SearchProviders.name)
+                        SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
+                        SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
+                        else -> ""
+                    }
+
                     TopAppBar(
                         title = { Text(name) },
+                        // Handled by the spacer above.
+                        windowInsets = WindowInsets(0, 0, 0, 0),
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.surface,
                             titleContentColor = MaterialTheme.colorScheme.primary
                         ),
                         scrollBehavior = scrollBehavior,
                         navigationIcon = {
-                            if (currentRoute in SettingsScreen.routes) {
+                            if (topBarRoute in SettingsScreen.routes) {
                                 IconButton(
                                     onClick = {
                                         navController.popBackStack()
@@ -166,10 +224,13 @@ fun MainScreen(
                             }
                         },
                         actions = {
-                            if (currentRoute in listOf(Screen.Feed.route, Screen.Saved.route)) {
+                            if (topBarRoute in listOf(Screen.Feed.route, Screen.Saved.route)) {
                                 IconButton(
                                     onClick = {
                                         navController.navigate(SettingsScreen.Main.route)
+                                    },
+                                    modifier = Modifier.onGloballyPositioned { coordinates ->
+                                        settingsButtonCenter = coordinates.boundsInRoot().center
                                     },
                                 ) {
                                     Icon(
@@ -179,6 +240,8 @@ fun MainScreen(
                                 }
                             }
                         })
+                    }
+                }
             },
             bottomBar = {
                 if (currentRoute in screens.map { it.route })
@@ -223,6 +286,7 @@ fun MainScreen(
                 scrollBehavior = scrollBehavior,
                 snackbarHostState = snackbarHostState,
                 paddingValues = paddingValues,
+                settingsRevealOrigin = settingsButtonCenter,
                 onArticleSelected = {
                     selectedArticleId = it.id
                 }
@@ -239,3 +303,5 @@ fun MainScreen(
         }
     }
 }
+
+private const val TopBarAnimationMillis = 300
