@@ -45,7 +45,4 @@ data class ArticleEntity(
 
     @ColumnInfo(name = "published_at")
     val publishedAt: Long,
-
-    @ColumnInfo(name = "content")
-    val content: String?,
 )

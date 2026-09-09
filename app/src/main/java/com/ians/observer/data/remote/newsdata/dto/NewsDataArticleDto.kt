@@ -17,9 +17,6 @@ data class NewsDataArticleDto(
     @SerializedName("description")
     val description: String?,
 
-    @SerializedName("content")
-    val content: String?,
-
     @SerializedName("keywords")
     val keywords: List<String>?,
 

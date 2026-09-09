@@ -65,7 +65,6 @@ private fun ArticleCardPreview() {
             description = "This is a preview article",
             originalUrl = "https://ichef.bbci.co.uk/images/ic/1920x1080/p0nhlk0l.jpg.webp",
             publishedAt = 0,
-            content = "",
             imageUrl = "",
             isFavorite = true,
             category = Category.TECHNOLOGY,

@@ -235,7 +235,6 @@ internal fun testArticle(
     originalUrl = originalUrl,
     imageUrl = null,
     publishedAt = 1_000L,
-    content = "Test content",
     isFavorite = isFavorite,
     category = category,
 )

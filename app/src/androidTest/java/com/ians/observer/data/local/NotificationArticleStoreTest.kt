@@ -112,6 +112,5 @@ class NotificationArticleStoreTest {
         description = "Description",
         imageUrl = null,
         publishedAt = 1_000L,
-        content = "Content",
     )
 }

@@ -1,5 +1,6 @@
 package com.ians.observer.data.local.entity
 
+import com.ians.observer.BuildConfig
 import com.ians.observer.data.local.projection.ArticleDetailsProjection
 import com.ians.observer.data.local.projection.FavoriteArticleProjection
 import com.ians.observer.data.local.projection.FeedArticleProjection
@@ -21,7 +22,6 @@ fun Article.toEntity(): ArticleEntity = ArticleEntity(
     description = description,
     imageUrl = imageUrl,
     publishedAt = publishedAt,
-    content = content,
 )
 
 fun ArticleEntity.toArticle(
@@ -41,9 +41,8 @@ fun ArticleEntity.toArticle(
         title = this.title,
         description = this.description,
         originalUrl = this.url,
-        imageUrl = this.imageUrl,
+        imageUrl = this.imageUrl.takeIf { BuildConfig.IMAGES_ENABLED },
         publishedAt = this.publishedAt,
-        content = this.content,
         isFavorite = isFavorite,
         category = category
     )

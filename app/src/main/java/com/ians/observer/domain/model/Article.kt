@@ -10,7 +10,6 @@ data class Article(
     val originalUrl: String,
     val imageUrl: String?,
     val publishedAt: Long,
-    val content: String?,
     val isFavorite: Boolean = false,
     val category: Category? = null,
 )

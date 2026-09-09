@@ -4,6 +4,65 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE articles_new (
+                id TEXT NOT NULL,
+                url TEXT NOT NULL,
+                article_provider_id TEXT NOT NULL,
+                article_category TEXT,
+                publisher_id TEXT,
+                publisher_name TEXT NOT NULL,
+                publisher_url TEXT NOT NULL,
+                authors TEXT,
+                title TEXT NOT NULL,
+                description TEXT,
+                image_url TEXT,
+                published_at INTEGER NOT NULL,
+                PRIMARY KEY(id)
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO articles_new (
+                id,
+                url,
+                article_provider_id,
+                article_category,
+                publisher_id,
+                publisher_name,
+                publisher_url,
+                authors,
+                title,
+                description,
+                image_url,
+                published_at
+            )
+            SELECT
+                id,
+                url,
+                article_provider_id,
+                article_category,
+                publisher_id,
+                publisher_name,
+                publisher_url,
+                authors,
+                title,
+                description,
+                image_url,
+                published_at
+            FROM articles
+            """.trimIndent(),
+        )
+
+        db.execSQL("DROP TABLE articles")
+        db.execSQL("ALTER TABLE articles_new RENAME TO articles")
+    }
+}
+
 val MIGRATION_12_13 = object : Migration(12, 13) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

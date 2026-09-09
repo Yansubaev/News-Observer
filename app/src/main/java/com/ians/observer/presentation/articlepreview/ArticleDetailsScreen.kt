@@ -596,7 +596,6 @@ fun ArticleDetailsUiPreview() {
             originalUrl = "https://example.com/article-3",
             imageUrl = null,
             publishedAt = 1710007200000,
-            content = "Preview content three",
             isFavorite = false,
             providerId = ProviderId.NEWS_API,
             category = Category.TECHNOLOGY

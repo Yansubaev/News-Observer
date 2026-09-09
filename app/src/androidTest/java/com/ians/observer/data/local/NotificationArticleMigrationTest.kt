@@ -15,6 +15,7 @@ import com.ians.observer.data.local.entity.FavoriteEntity
 import com.ians.observer.data.local.entity.FeedEntity
 import com.ians.observer.data.local.entity.RemoteKeyEntity
 import com.ians.observer.data.local.migration.MIGRATION_12_13
+import com.ians.observer.data.local.migration.MIGRATION_13_14
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -53,7 +54,7 @@ class NotificationArticleMigrationTest {
 
         val migratedDatabase = Room
             .databaseBuilder(context, NewsDatabase::class.java, DATABASE_NAME)
-            .addMigrations(MIGRATION_12_13)
+            .addMigrations(MIGRATION_12_13, MIGRATION_13_14)
             .build()
         try {
             assertNotNull(migratedDatabase.articleDao().getArticleById(article.id).first())
@@ -79,7 +80,6 @@ class NotificationArticleMigrationTest {
         description = "Description",
         imageUrl = null,
         publishedAt = 1_000L,
-        content = "Content",
     )
 
     companion object {

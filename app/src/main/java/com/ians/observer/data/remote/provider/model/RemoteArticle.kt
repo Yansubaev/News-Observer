@@ -15,7 +15,6 @@ data class RemoteArticle (
     val originalUrl: String,
     val imageUrl: String?,
     val publishedAt: Long,
-    val content: String?,
     val category: Category? = null,
 )
 

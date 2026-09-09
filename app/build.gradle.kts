@@ -52,11 +52,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("Boolean", "IMAGES_ENABLED", "false")
         }
 
         debug {
             buildConfigField("String", "NEWS_API_KEY", "\"${newsApiKey.orEmpty()}\"")
-
+            buildConfigField("Boolean", "IMAGES_ENABLED", "true")
         }
     }
     compileOptions {

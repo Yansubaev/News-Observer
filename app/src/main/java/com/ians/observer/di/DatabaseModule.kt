@@ -7,6 +7,7 @@ import com.ians.observer.data.local.dao.ArticlePagingDao
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.dao.RemoteKeyDao
 import com.ians.observer.data.local.migration.MIGRATION_12_13
+import com.ians.observer.data.local.migration.MIGRATION_13_14
 import com.ians.observer.data.local.migration.MIGRATION_6_7
 import com.ians.observer.data.local.migration.MIGRATION_8_9
 import com.ians.observer.data.local.migration.MIGRATION_9_10
@@ -37,6 +38,7 @@ object DatabaseModule {
                 MIGRATION_8_9,
                 MIGRATION_9_10,
                 MIGRATION_12_13,
+                MIGRATION_13_14,
             )
             .build()
     }

@@ -189,7 +189,6 @@ class ArticleRepositoryImpl @Inject constructor(
                 description = article.description,
                 imageUrl = article.imageUrl,
                 publishedAt = article.publishedAt,
-                content = article.content
             ),
             category = category?.value,
             providerId = article.providerId.value,

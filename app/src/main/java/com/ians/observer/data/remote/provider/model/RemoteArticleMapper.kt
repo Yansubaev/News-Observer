@@ -1,5 +1,6 @@
 package com.ians.observer.data.remote.provider.model
 
+import com.ians.observer.BuildConfig
 import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Publisher
@@ -16,9 +17,8 @@ fun RemoteArticle.toEntity(): ArticleEntity =
         authors = this.authors,
         title = this.title,
         description = this.description,
-        imageUrl = this.imageUrl,
+        imageUrl = this.imageUrl.takeIf { BuildConfig.IMAGES_ENABLED },
         publishedAt = this.publishedAt,
-        content = this.content
     )
 
 fun RemoteArticle.toArticle(isFavorite: Boolean): Article = Article(
@@ -32,9 +32,8 @@ fun RemoteArticle.toArticle(isFavorite: Boolean): Article = Article(
     title = this.title,
     description = this.description,
     originalUrl = this.originalUrl,
-    imageUrl = this.imageUrl,
+    imageUrl = this.imageUrl.takeIf { BuildConfig.IMAGES_ENABLED },
     publishedAt = this.publishedAt,
-    content = this.content,
     isFavorite = isFavorite,
     category = category,
     providerId = providerId

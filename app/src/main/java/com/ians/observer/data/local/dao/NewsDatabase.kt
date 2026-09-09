@@ -20,7 +20,7 @@ import com.ians.observer.data.local.entity.RemoteKeyEntity
         FeedEntity::class,
         NotificationArticleEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 @TypeConverters(ListConverters::class)

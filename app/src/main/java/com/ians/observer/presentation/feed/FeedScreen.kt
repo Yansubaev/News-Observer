@@ -268,7 +268,6 @@ fun FeedScreenPreview() {
             originalUrl = "https://example.com/article-1",
             imageUrl = null,
             publishedAt = 1710000000000,
-            content = "Preview content one",
             isFavorite = false,
             providerId = ProviderId.NEWS_API,
             category = Category.GENERAL
@@ -286,7 +285,6 @@ fun FeedScreenPreview() {
             originalUrl = "https://example.com/article-2",
             imageUrl = null,
             publishedAt = 1710003600000,
-            content = "Preview content two",
             isFavorite = true,
             providerId = ProviderId.NEWS_API,
             category = Category.SPORTS
@@ -304,7 +302,6 @@ fun FeedScreenPreview() {
             originalUrl = "https://example.com/article-3",
             imageUrl = null,
             publishedAt = 1710007200000,
-            content = "Preview content three",
             isFavorite = false,
             providerId = ProviderId.NEWS_API,
             category = Category.TECHNOLOGY

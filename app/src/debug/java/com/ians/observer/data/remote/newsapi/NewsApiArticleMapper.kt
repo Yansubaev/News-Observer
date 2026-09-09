@@ -23,7 +23,6 @@ fun NewsApiArticleDto.toRemoteArticle(): RemoteArticle {
         publishedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US)
             .parse(this.publishedAt)
             ?.time ?: System.currentTimeMillis(),
-        content = this.content,
         category = null,
         providerId = ProviderId.NEWS_API
     )
