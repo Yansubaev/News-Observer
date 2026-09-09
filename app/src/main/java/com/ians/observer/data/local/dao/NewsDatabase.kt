@@ -8,6 +8,7 @@ import com.ians.observer.data.local.entity.ArticleEntity
 import com.ians.observer.data.local.entity.ArticleFeedCrossRefEntity
 import com.ians.observer.data.local.entity.FavoriteEntity
 import com.ians.observer.data.local.entity.FeedEntity
+import com.ians.observer.data.local.entity.NotificationArticleEntity
 import com.ians.observer.data.local.entity.RemoteKeyEntity
 
 @Database(
@@ -16,9 +17,10 @@ import com.ians.observer.data.local.entity.RemoteKeyEntity
         RemoteKeyEntity::class,
         ArticleFeedCrossRefEntity::class,
         FavoriteEntity::class,
-        FeedEntity::class
+        FeedEntity::class,
+        NotificationArticleEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = false,
 )
 @TypeConverters(ListConverters::class)
@@ -28,4 +30,5 @@ abstract class NewsDatabase : RoomDatabase() {
     abstract fun remoteKeyDao(): RemoteKeyDao
     abstract fun articleFeedCrossRefDao(): ArticleFeedCrossRefDao
     abstract fun feedDao(): FeedDao
+    abstract fun notificationArticleDao(): NotificationArticleDao
 }

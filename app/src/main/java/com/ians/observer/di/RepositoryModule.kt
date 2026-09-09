@@ -42,3 +42,4 @@ abstract class RepositoryModule {
         newsProvidersRepository: NewsProvidersRepositoryImpl
     ): NewsProvidersRepository
 }
+

@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -119,9 +120,14 @@ fun SettingsItemActionVariant(
     item: SettingsItem.Action, modifier: Modifier = Modifier
 ) {
     Row(
-        modifier.clickable(
-            onClick = item.onClick, role = Role.Button
-        ), verticalAlignment = Alignment.CenterVertically
+        modifier
+            .alpha(if (item.enabled) 1f else 0.38f)
+            .clickable(
+                enabled = item.enabled,
+                onClick = item.onClick,
+                role = Role.Button,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Spacer(modifier = Modifier.width(12.dp))
         item.iconRes?.let {

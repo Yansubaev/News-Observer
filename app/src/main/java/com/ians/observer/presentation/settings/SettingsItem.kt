@@ -12,6 +12,7 @@ sealed class SettingsItem {
     data class Action(
         val title: Int,
         val onClick: () -> Unit = {},
+        val enabled: Boolean = true,
         val iconRes: Int? = null,
         val iconContentDescription: Int? = null
     ) : SettingsItem()

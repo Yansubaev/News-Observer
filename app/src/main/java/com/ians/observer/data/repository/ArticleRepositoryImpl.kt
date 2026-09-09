@@ -6,14 +6,18 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import androidx.room.withTransaction
+import com.ians.observer.data.local.replaceNotificationArticle
 import com.ians.observer.data.local.dao.NewsDatabase
 import com.ians.observer.data.local.entity.ArticleEntity
+import com.ians.observer.data.local.entity.toEntity
 import com.ians.observer.data.local.entity.toArticle
 import com.ians.observer.data.paging.ArticleRemoteMediatorFactory
 import com.ians.observer.data.paging.ArticleSearchPagingSource
 import com.ians.observer.data.paging.FeedKeyFactory
 import com.ians.observer.data.paging.model.PagingSourceSpec
 import com.ians.observer.data.remote.provider.NewsProviderRegistry
+import com.ians.observer.data.remote.provider.model.FeedRequest
+import com.ians.observer.data.remote.provider.model.toArticle
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
@@ -86,6 +90,24 @@ class ArticleRepositoryImpl @Inject constructor(
                 entity.toArticle()
             }
         })
+    }
+
+    override suspend fun fetchTopHeadlines(spec: FeedSpec): List<Article> {
+        val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
+            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${spec.providerIds}")
+
+        val newsProvider = newsProviderRegistry.require(availableProviderId)
+
+        val pageResult = newsProvider.loadFeed(
+            request = FeedRequest(
+                country = spec.country,
+                language = spec.language,
+                category = spec.category
+            ),
+            pageToken = null
+        )
+
+        return pageResult.articles.map { it.toArticle(false) }
     }
 
     override fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>> {
@@ -190,5 +212,9 @@ class ArticleRepositoryImpl @Inject constructor(
             database.feedDao().deleteAllFeeds()
             database.articleDao().deleteOrphanedArticles()
         }
+    }
+
+    override suspend fun replaceNotificationArticle(article: Article) {
+        database.replaceNotificationArticle(article.toEntity())
     }
 }

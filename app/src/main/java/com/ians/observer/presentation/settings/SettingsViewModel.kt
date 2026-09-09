@@ -8,6 +8,8 @@ import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.repository.NewsProvidersRepository
 import com.ians.observer.domain.repository.SettingsRepository
 import com.ians.observer.domain.usecase.settings.ClearArticleCacheUseCase
+import com.ians.observer.domain.usecase.settings.SendTestNotificationUseCase
+import com.ians.observer.domain.usecase.settings.SetNotificationEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,10 +21,12 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val clearArticleCacheUseCase: ClearArticleCacheUseCase,
+    private val sendTestNotificationUseCase: SendTestNotificationUseCase,
+    private val setNotificationEnabledUseCase: SetNotificationEnabledUseCase,
 
     private val settingsRepository: SettingsRepository,
     private val newsProvidersRepository: NewsProvidersRepository,
-    ) : ViewModel() {
+) : ViewModel() {
 
     val feedProviderIds = newsProvidersRepository.getTopHeadlinesCapableProviderIds()
     val searchProviderIds = newsProvidersRepository.getSearchCapableProviderIds()
@@ -55,9 +59,25 @@ class SettingsViewModel @Inject constructor(
             initialValue = ProviderId.NEWS_DATA
         )
 
+    val notificationsEnabledState = settingsRepository.observeNotificationPreference()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
+
+    val notificationPermissionRequestedState =
+        settingsRepository.observeNotificationPermissionRequested()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = false
+            )
+
     sealed interface SettingsEvent {
         data object CacheCleared : SettingsEvent
         data object CacheClearFailed : SettingsEvent
+        data object TestNotificationScheduled : SettingsEvent
     }
 
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
@@ -77,6 +97,19 @@ class SettingsViewModel @Inject constructor(
 
     fun selectSearchProvider(providerId: ProviderId) = viewModelScope.launch {
         settingsRepository.setSearchProviderPreference(providerId)
+    }
+
+    fun setNotificationEnabled(enabled: Boolean) = viewModelScope.launch {
+        setNotificationEnabledUseCase(enabled)
+    }
+
+    fun markNotificationPermissionRequested() = viewModelScope.launch {
+        settingsRepository.setNotificationPermissionRequested(true)
+    }
+
+    fun sendTestNotification() {
+        sendTestNotificationUseCase()
+        _events.trySend(SettingsEvent.TestNotificationScheduled)
     }
 
     fun clearCachedArticles() = viewModelScope.launch {

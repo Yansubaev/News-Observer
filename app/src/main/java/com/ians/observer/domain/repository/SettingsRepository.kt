@@ -9,13 +9,20 @@ interface SettingsRepository {
     suspend fun getSyncInterval(): Long
 
     suspend fun setCountryPreference(country: NewsCountry)
-    suspend fun setLanguagePreference(language: NewsLanguage)
-
     fun observeCountryPreference(): Flow<NewsCountry>
+
+    suspend fun setLanguagePreference(language: NewsLanguage)
     fun observeLanguagePreference(): Flow<NewsLanguage>
 
     suspend fun setFeedProviderPreference(providerId: ProviderId)
-    suspend fun setSearchProviderPreference(providerId: ProviderId)
     fun observeFeedProviderPreference(): Flow<ProviderId>
+
+    suspend fun setSearchProviderPreference(providerId: ProviderId)
     fun observeSearchProviderPreference(): Flow<ProviderId>
+
+    suspend fun setNotificationPreference(enabled: Boolean)
+    fun observeNotificationPreference(): Flow<Boolean>
+
+    suspend fun setNotificationPermissionRequested(requested: Boolean)
+    fun observeNotificationPermissionRequested(): Flow<Boolean>
 }

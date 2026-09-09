@@ -8,6 +8,22 @@ import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.domain.model.Publisher
 
+fun Article.toEntity(): ArticleEntity = ArticleEntity(
+    id = id,
+    url = originalUrl,
+    providerId = providerId.value,
+    category = category?.value,
+    publisherId = publisher.id,
+    publisherName = publisher.name,
+    publisherWebsiteUrl = publisher.websiteUrl,
+    authors = authors,
+    title = title,
+    description = description,
+    imageUrl = imageUrl,
+    publishedAt = publishedAt,
+    content = content,
+)
+
 fun ArticleEntity.toArticle(
     isFavorite: Boolean,
     category: Category?,

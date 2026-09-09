@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.favorites
+package com.ians.observer.presentation.saved
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FavoritesViewModel @Inject constructor(
+class SavedViewModel @Inject constructor(
     private val setArticleFavoriteUseCase: SetArticleFavoriteUseCase,
     private val observeFavoriteArticlesUseCase: ObserveFavoriteArticlesUseCase,
     private val observeFavoriteCategoriesUseCase: ObserveFavoriteCategoriesUseCase,

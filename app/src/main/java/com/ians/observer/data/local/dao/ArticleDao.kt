@@ -172,9 +172,33 @@ interface ArticleDao {
             SELECT 1 FROM article_feed_cross_refs
             WHERE article_feed_cross_refs.article_id = articles.id
         )
+        AND NOT EXISTS(
+            SELECT 1 FROM notification_articles
+            WHERE notification_articles.article_id = articles.id
+        )
     """
     )
     suspend fun deleteOrphanedArticles()
+
+    @Query(
+        """
+        DELETE FROM articles
+        WHERE id = :articleId
+        AND NOT EXISTS(
+            SELECT 1 FROM favorites
+            WHERE favorites.article_id = articles.id
+        )
+        AND NOT EXISTS(
+            SELECT 1 FROM article_feed_cross_refs
+            WHERE article_feed_cross_refs.article_id = articles.id
+        )
+        AND NOT EXISTS(
+            SELECT 1 FROM notification_articles
+            WHERE notification_articles.article_id = articles.id
+        )
+        """
+    )
+    suspend fun deleteArticleIfOrphan(articleId: String)
 
     @Query("DELETE FROM articles")
     suspend fun deleteAll()

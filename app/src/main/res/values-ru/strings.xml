@@ -22,7 +22,7 @@
     <string name="no_articles">Статьи не найдены</string>
     <string name="nav_feed">Главная</string>
     <string name="nav_search">Поиск</string>
-    <string name="nav_favorites">Избранное</string>
+    <string name="nav_saved">Сохранённое</string>
     <string name="nav_profile">Профиль</string>
     <string name="search_news">Поиск нвостей…</string>
     <string name="recents">Недавние</string>
@@ -57,9 +57,15 @@
 
     <!-- Доступность экрана подробностей статьи -->
     <string name="cd_article_details_close">Закрыть подробности статьи</string>
-    <string name="cd_article_details_add_to_favorites">Добавить в избранное</string>
-    <string name="cd_article_details_remove_from_favorites">Удалить из избранного</string>
+    <string name="cd_article_details_save_article">Сохранить статью</string>
+    <string name="cd_article_details_unsave_article">Удалить из сохранённых</string>
     <string name="cd_article_details_share">Поделиться статьёй</string>
+
+    <!-- Уведомления о статье дня -->
+    <string name="daily_news_channel_name">Статья дня</string>
+    <string name="daily_news_channel_description">Ежедневная рекомендация статьи из вашей новостной ленты</string>
+    <string name="daily_article_notification_title">Статья дня</string>
+    <string name="daily_article_notification_fallback_text">Откройте News Observer, чтобы прочитать статью дня</string>
 
     <string name="settings">Настройки</string>
     <string name="settings_feed_providers">Источники ленты новостей</string>
@@ -69,15 +75,18 @@
     <string name="settings_clear_cache">Очистить кэш</string>
     <string name="settings_about">О приложении</string>
     <string name="settings_notifications">Уведомления о новых статьях</string>
+    <string name="settings_test_notification">Отправить тестовое уведомление</string>
+    <string name="settings_test_notification_scheduled">Тестовое уведомление поставлено в очередь</string>
+    <string name="cd_settings_test_notification">Отправить тестовое уведомление со статьёй</string>
     <string name="settings_clear_cache_dialog_title">Очистить кэш новостей?</string>
-    <string name="settings_clear_cache_dialog_message">Загруженные статьи будут удалены. Избранное, история поиска и настройки сохранятся.</string>
+    <string name="settings_clear_cache_dialog_message">Загруженные статьи будут удалены. Сохранённые статьи, история поиска и настройки останутся.</string>
     <string name="settings_clear_cache_confirm">Очистить</string>
     <string name="settings_clear_cache_cancel">Отмена</string>
     <string name="settings_cache_cleared">Кэш очищен</string>
     <string name="settings_cache_clear_failed">Не удалось очистить кэш</string>
 
     <!-- О приложении -->
-    <string name="about_app_description">Следите за последними новостями, ищите статьи и сохраняйте избранное из разных источников.</string>
+    <string name="about_app_description">Следите за последними новостями, ищите статьи и сохраняйте нужные из разных источников.</string>
     <string name="about_version">Версия %1$s</string>
     <string name="about_news_sources">Источники новостей</string>
     <string name="about_news_attribution">Новостные материалы и метаданные предоставляются сторонними сервисами.</string>

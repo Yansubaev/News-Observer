@@ -1,6 +1,7 @@
 package com.ians.observer.domain.usecase.fake
 
 import androidx.paging.PagingData
+import com.ians.observer.domain.background.DailyNewsScheduler
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
@@ -24,11 +25,15 @@ internal data class TopHeadlinesRequest(
 
 internal class FakeArticleRepository : ArticleRepository {
     val topHeadlinesRequests = mutableListOf<TopHeadlinesRequest>()
+    val fetchedTopHeadlinesRequests = mutableListOf<FeedSpec>()
     val searchRequests = mutableListOf<SearchSpec>()
     val addedFavorites = mutableListOf<Pair<Article, Category?>>()
     val removedFavoriteIds = mutableListOf<String>()
+    val notificationArticles = mutableListOf<Article>()
 
     var topHeadlinesPagingFlow: Flow<PagingData<Article>> = flowOf(PagingData.empty())
+    var fetchedTopHeadlines: List<Article> = listOf(testArticle())
+    var fetchTopHeadlinesException: Throwable? = null
     var searchPagingFlow: Flow<PagingData<Article>> = flowOf(PagingData.empty())
     var searchPagingFlowFactory: (() -> Flow<PagingData<Article>>)? = null
     val favoriteArticles = MutableStateFlow<List<Article>>(emptyList())
@@ -40,6 +45,7 @@ internal class FakeArticleRepository : ArticleRepository {
 
     var clearCacheCallCount = 0
     var clearCacheException: Exception? = null
+    var replaceNotificationArticleException: Throwable? = null
 
     override fun observeTopHeadlinesPaging(
         spec: FeedSpec,
@@ -47,6 +53,12 @@ internal class FakeArticleRepository : ArticleRepository {
     ): Flow<PagingData<Article>> {
         topHeadlinesRequests += TopHeadlinesRequest(spec, syncInterval)
         return topHeadlinesPagingFlow
+    }
+
+    override suspend fun fetchTopHeadlines(spec: FeedSpec): List<Article> {
+        fetchedTopHeadlinesRequests += spec
+        fetchTopHeadlinesException?.let { throw it }
+        return fetchedTopHeadlines
     }
 
     override fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>> {
@@ -82,19 +94,29 @@ internal class FakeArticleRepository : ArticleRepository {
         clearCacheCallCount += 1
         clearCacheException?.let { throw it }
     }
+
+    override suspend fun replaceNotificationArticle(article: Article) {
+        notificationArticles += article
+        replaceNotificationArticleException?.let { throw it }
+    }
 }
 
 internal class FakeSettingsRepository(
-    country: NewsCountry = NewsCountry.US,
-    language: NewsLanguage = NewsLanguage.EN,
-    feedProvider: ProviderId = ProviderId.NEWS_DATA,
-    searchProvider: ProviderId = ProviderId.NEWS_DATA,
+    val country: NewsCountry = NewsCountry.US,
+    val language: NewsLanguage = NewsLanguage.EN,
+    val feedProvider: ProviderId = ProviderId.NEWS_DATA,
+    val searchProvider: ProviderId = ProviderId.NEWS_DATA,
     var syncInterval: Long = 10 * 60 * 1_000L,
+    var notificationsEnabled: Boolean = false,
+    var notificationPermissionRequested: Boolean = false,
 ) : SettingsRepository {
     val countryPreference = MutableStateFlow(country)
     val languagePreference = MutableStateFlow(language)
     val feedProviderPreference = MutableStateFlow(feedProvider)
     val searchProviderPreference = MutableStateFlow(searchProvider)
+    val notificationPreferences = MutableStateFlow(notificationsEnabled)
+    val notificationPermissionRequestedPreference =
+        MutableStateFlow(notificationPermissionRequested)
 
     override suspend fun getSyncInterval(): Long = syncInterval
 
@@ -121,6 +143,39 @@ internal class FakeSettingsRepository(
     override fun observeFeedProviderPreference(): Flow<ProviderId> = feedProviderPreference
 
     override fun observeSearchProviderPreference(): Flow<ProviderId> = searchProviderPreference
+
+    override suspend fun setNotificationPreference(enabled: Boolean) {
+        notificationsEnabled = enabled
+        notificationPreferences.value = enabled
+    }
+
+    override fun observeNotificationPreference(): Flow<Boolean> = notificationPreferences
+
+    override suspend fun setNotificationPermissionRequested(requested: Boolean) {
+        notificationPermissionRequested = requested
+        notificationPermissionRequestedPreference.value = requested
+    }
+
+    override fun observeNotificationPermissionRequested(): Flow<Boolean> =
+        notificationPermissionRequestedPreference
+}
+
+internal class FakeDailyNewsScheduler : DailyNewsScheduler {
+    var scheduleCallCount = 0
+    var cancelCallCount = 0
+    var enqueueOneTimeCallCount = 0
+
+    override fun schedule() {
+        scheduleCallCount += 1
+    }
+
+    override fun cancel() {
+        cancelCallCount += 1
+    }
+
+    override fun enqueueOneTime() {
+        enqueueOneTimeCallCount += 1
+    }
 }
 
 internal class FakeSearchHistoryRepository(

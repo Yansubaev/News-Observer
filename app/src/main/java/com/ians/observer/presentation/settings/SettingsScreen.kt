@@ -1,5 +1,10 @@
 package com.ians.observer.presentation.settings
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,9 +33,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -42,6 +49,8 @@ import com.ians.observer.R
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.presentation.helper.canPostNotifications
+import com.ians.observer.presentation.helper.openNotificationSettings
 import com.ians.observer.presentation.mapper.titleRes
 import com.ians.observer.presentation.navigation.SettingsScreen
 
@@ -51,6 +60,8 @@ fun MainSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val activity = LocalActivity.current
 
     var showClearCacheDialog by rememberSaveable {
         mutableStateOf(false)
@@ -60,22 +71,47 @@ fun MainSettingsScreen(
         mutableStateOf(false)
     }
 
+    var awaitingNotificationSettingsResult by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val cacheClearedMessage = stringResource(R.string.settings_cache_cleared)
     val cachedClearFailedMessage = stringResource(R.string.settings_cache_clear_failed)
+    val testNotificationScheduledMessage =
+        stringResource(R.string.settings_test_notification_scheduled)
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val notificationPermissionRequested by viewModel.notificationPermissionRequestedState
+        .collectAsStateWithLifecycle()
+
+    val notificationsEnabled by viewModel.notificationsEnabledState.collectAsStateWithLifecycle()
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.setNotificationEnabled(true)
+        } else {
+            viewModel.setNotificationEnabled(false)
+        }
+    }
+
 
     LaunchedEffect(
         viewModel,
         lifecycleOwner,
         cacheClearedMessage,
-        cachedClearFailedMessage
+        cachedClearFailedMessage,
+        testNotificationScheduledMessage,
     ) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 val message = when (event) {
                     SettingsViewModel.SettingsEvent.CacheCleared -> cacheClearedMessage
                     SettingsViewModel.SettingsEvent.CacheClearFailed -> cachedClearFailedMessage
+                    SettingsViewModel.SettingsEvent.TestNotificationScheduled ->
+                        testNotificationScheduledMessage
                 }
 
                 snackbarHostState.showSnackbar(message)
@@ -83,14 +119,73 @@ fun MainSettingsScreen(
         }
     }
 
+    LaunchedEffect(
+        viewModel,
+        lifecycleOwner
+    ) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            val canPost = context.canPostNotifications()
+
+            when {
+                awaitingNotificationSettingsResult -> {
+                    viewModel.setNotificationEnabled(canPost)
+                    awaitingNotificationSettingsResult = false
+                }
+
+                !canPost -> {
+                    viewModel.setNotificationEnabled(false)
+                }
+            }
+        }
+    }
+
+    fun onNotificationToggled(enabled: Boolean) {
+        if (!enabled) {
+            viewModel.setNotificationEnabled(false)
+        } else {
+            when {
+                context.canPostNotifications() -> {
+                    viewModel.setNotificationEnabled(true)
+                }
+
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        !notificationPermissionRequested -> {
+                    viewModel.markNotificationPermissionRequested()
+                    notificationPermissionLauncher.launch(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    )
+                }
+
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        activity != null &&
+                        ActivityCompat.shouldShowRequestPermissionRationale(
+                            /* activity = */ activity,
+                            /* permission = */ Manifest.permission.POST_NOTIFICATIONS
+                        ) -> {
+                    notificationPermissionLauncher.launch(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    )
+                }
+
+                else -> {
+                    awaitingNotificationSettingsResult = true
+                    context.openNotificationSettings()
+                }
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         MainSettingsScreenUI(
+            notificationsEnabled = notificationsEnabled,
             onNavigate = {
                 navController.navigate(it)
             },
             onClearCacheClick = {
                 showClearCacheDialog = true
             },
+            onNotificationsToggled = ::onNotificationToggled,
+            onTestNotificationClick = viewModel::sendTestNotification,
             onAboutClicked = {
                 showAboutDialog = true
             }
@@ -192,66 +287,96 @@ fun RegionSettingsScreen(
 
 @Composable
 private fun MainSettingsScreenUI(
+    notificationsEnabled: Boolean,
     onNavigate: (String) -> Unit = {},
     onClearCacheClick: () -> Unit = {},
-    onAchievementsToggled: (Boolean) -> Unit = {},
+    onNotificationsToggled: (Boolean) -> Unit = {},
+    onTestNotificationClick: () -> Unit = {},
     onAboutClicked: () -> Unit = {}
 ) {
     val mod = Modifier
         .fillMaxWidth()
         .height(68.dp)
 
-    SettingsListView(
-        listOf(
+    val items = buildList {
+        add(
             SettingsItem.Navigation(
                 title = R.string.settings_feed_providers,
                 iconRes = R.drawable.sources,
                 route = SettingsScreen.FeedProviders.route,
                 onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_sources
-            ),
+            )
+        )
+        add(
             SettingsItem.Navigation(
                 title = R.string.settings_search_providers,
                 iconRes = R.drawable.ic_search,
                 route = SettingsScreen.SearchProviders.route,
                 onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_sources
-            ),
+            )
+        )
+        add(
             SettingsItem.Navigation(
                 title = R.string.settings_language,
                 iconRes = R.drawable.language,
                 route = SettingsScreen.Language.route,
                 onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_language
-            ),
+            )
+        )
+        add(
             SettingsItem.Navigation(
                 title = R.string.settings_region,
                 iconRes = R.drawable.region,
                 route = SettingsScreen.Region.route,
                 onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_region
-            ),
+            )
+        )
+        add(
             SettingsItem.Toggle(
                 title = R.string.settings_notifications,
                 iconRes = R.drawable.notifications,
-                checked = false,
-                onCheckedChange = {},
+                checked = notificationsEnabled,
+                onCheckedChange = onNotificationsToggled,
                 iconContentDescription = R.string.cd_settings_notifications
-            ),
+            )
+        )
+        if (BuildConfig.DEBUG) {
+            add(
+                SettingsItem.Action(
+                    title = R.string.settings_test_notification,
+                    iconRes = R.drawable.notifications,
+                    onClick = onTestNotificationClick,
+                    enabled = notificationsEnabled,
+                    iconContentDescription = R.string.cd_settings_test_notification,
+                )
+            )
+        }
+        add(
             SettingsItem.Action(
                 title = R.string.settings_clear_cache,
                 iconRes = R.drawable.clear_cache,
                 onClick = onClearCacheClick,
                 iconContentDescription = R.string.cd_settings_clear_cache
-            ),
+            )
+        )
+        add(
             SettingsItem.Info(
                 title = R.string.settings_about,
                 iconRes = R.drawable.info,
                 value = "",
                 onClick = onAboutClicked,
                 iconContentDescription = R.string.cd_settings_about
-            ),
-        ), modifier = mod
+            )
+        )
+    }
+
+    SettingsListView(
+        list = items,
+        modifier = mod,
     )
 }
 
@@ -423,5 +548,5 @@ fun AboutAlertDialog(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainSettingsScreenUIPreview() {
-    MainSettingsScreenUI()
+    MainSettingsScreenUI(notificationsEnabled = true)
 }

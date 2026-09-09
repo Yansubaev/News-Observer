@@ -1,4 +1,4 @@
-package com.ians.observer.presentation.favorites
+package com.ians.observer.presentation.saved
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -33,9 +33,9 @@ import com.ians.observer.presentation.mapper.titleRes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(
+fun SavedScreen(
     nestedScrollConnection: NestedScrollConnection,
-    viewModel: FavoritesViewModel = hiltViewModel(),
+    viewModel: SavedViewModel = hiltViewModel(),
     onArticleClick: (Article) -> Unit
 ) {
     val articles by viewModel.articles.collectAsState(emptyList())

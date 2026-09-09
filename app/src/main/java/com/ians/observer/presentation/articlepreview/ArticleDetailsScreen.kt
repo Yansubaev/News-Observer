@@ -383,9 +383,9 @@ fun ArticleDetailsScreen(
                             painterResource(R.drawable.ic_favorites)
                         },
                         contentDescription = if (article.isFavorite) {
-                            stringResource(R.string.cd_article_details_remove_from_favorites)
+                            stringResource(R.string.cd_article_details_unsave_article)
                         } else {
-                            stringResource(R.string.cd_article_details_add_to_favorites)
+                            stringResource(R.string.cd_article_details_save_article)
                         },
                         tint = tint,
                         modifier = Modifier

@@ -11,6 +11,8 @@ interface ArticleRepository {
 
     fun observeTopHeadlinesPaging(spec: FeedSpec, syncInterval: Long): Flow<PagingData<Article>>
 
+    suspend fun fetchTopHeadlines(spec: FeedSpec): List<Article>
+
     fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>>
 
     fun observeFavoriteArticles(): Flow<List<Article>>
@@ -29,5 +31,5 @@ interface ArticleRepository {
 
     suspend fun clearCachedArticles()
 
-
+    suspend fun replaceNotificationArticle(article: Article)
 }
