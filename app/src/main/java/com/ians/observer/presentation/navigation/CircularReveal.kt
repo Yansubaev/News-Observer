@@ -23,16 +23,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 
-/**
- * Clips [content] to a circle growing out of [originInRoot], which is expected to be the centre of
- * the control that opened the screen.
- *
- * The clip is only installed while [progress] is below `1f`; once the circle covers everything the
- * modifier chain drops it, but the [Box] itself stays in place so [content] never loses its state.
- *
- * @param originInRoot centre of the circle in root window coordinates. [Offset.Unspecified] falls
- *   back to the top-end corner.
- */
 @Composable
 fun CircularReveal(
     progress: Float,
@@ -81,7 +71,6 @@ private class CircularRevealShape(
     ): Outline {
         val center = if (origin.isSpecified) origin else Offset(size.width, 0f)
 
-        // The circle has to reach the farthest corner to cover the screen completely.
         val fullRadius = listOf(
             Offset.Zero,
             Offset(size.width, 0f),

@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -156,9 +157,12 @@ fun ArticleCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Publish date
-            val publishedAt = Date(article.publishedAt)
-            val formatter = SimpleDateFormat("EEEE, d MMMM HH:mm", LocalLocale.current.platformLocale)
-            val formattedDate = formatter.format(publishedAt)
+            val locale = LocalLocale.current.platformLocale
+            val formatter = remember(locale) { SimpleDateFormat(PublishedAtPattern, locale) }
+            val formattedDate = remember(formatter, article.publishedAt) {
+                formatter.format(Date(article.publishedAt))
+            }
+
             Text(
                 text = formattedDate,
                 style = MaterialTheme.typography.labelSmall,
@@ -220,3 +224,5 @@ fun AnimatedFavoriteButton(
         }
     }
 }
+
+private const val PublishedAtPattern = "EEEE, d MMMM HH:mm"

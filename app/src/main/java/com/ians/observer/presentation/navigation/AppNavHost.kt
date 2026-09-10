@@ -51,8 +51,6 @@ fun AppNavHost(
         exitTransition = { navExit() },
         popEnterTransition = { navPopEnter() },
         popExitTransition = { navPopExit() },
-        // The back button and the back gesture both arrive here. Without these two the library
-        // default scales every screen down to 0.7 on the way out.
         predictivePopEnterTransition = { navPopEnter() },
         predictivePopExitTransition = { navPopExit() }
     ) {
@@ -104,20 +102,6 @@ fun AppNavHost(
     }
 }
 
-/**
- * Grows the settings root out of the settings button, and shrinks it back into the button on the
- * way out.
- *
- * The progress is animated off [AnimatedVisibilityScope.transition] rather than a standalone
- * `Animatable` so that a predictive back gesture drags the circle with the finger and putting the
- * finger back cancels it — that transition is seekable, a hand-rolled animation would not be.
- *
- * Two things have to be told apart, and neither is visible from the transition alone:
- *  - a first appearance versus coming back from a settings sub-screen, kept in [rememberSaveable]
- *    so it survives leaving the composition while the entry stays on the back stack;
- *  - leaving settings altogether versus pushing a sub-screen on top, which is read off the
- *    controller: only the former should collapse the circle, the latter slides away as a whole.
- */
 @Composable
 private fun AnimatedVisibilityScope.SettingsReveal(
     navController: NavHostController,
@@ -132,8 +116,6 @@ private fun AnimatedVisibilityScope.SettingsReveal(
     val progress by transition.animateFloat(
         transitionSpec = {
             if (targetState == EnterExitState.Visible) {
-                // Decelerating: the circle starts up in the app bar, above the NavHost, so a slow
-                // start would be spent growing outside the visible content.
                 tween(SettingsRevealDurationMillis, easing = LinearOutSlowInEasing)
             } else {
                 tween(SettingsRevealDurationMillis, easing = FastOutLinearInEasing)
@@ -148,8 +130,6 @@ private fun AnimatedVisibilityScope.SettingsReveal(
         }
     }
 
-    // Recorded only once the screen has settled, so the flag never changes the value the entering
-    // animation started from.
     LaunchedEffect(transition.currentState) {
         if (transition.currentState == EnterExitState.Visible) revealPlayed = true
     }

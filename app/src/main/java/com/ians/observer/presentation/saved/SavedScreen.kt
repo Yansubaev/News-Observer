@@ -11,16 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -31,7 +31,6 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.components.ArticleCard
 import com.ians.observer.presentation.mapper.titleRes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedScreen(
     nestedScrollConnection: NestedScrollConnection,
@@ -42,49 +41,49 @@ fun SavedScreen(
     val selectedCategory by viewModel.selectedCategoryState.collectAsState()
     val categories by viewModel.categories.collectAsState()
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(nestedScrollConnection),
-    ) { paddingValues ->
-        Row(
-            modifier = Modifier
-                .defaultMinSize()
-                .horizontalScroll(rememberScrollState())
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 0.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            categories.forEach { category ->
-                FilterChip(
-                    selected = category == selectedCategory,
-                    onClick = { viewModel.changeCategory(category) },
-                    label = { Text(stringResource(category.titleRes)) }
-                )
-            }
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (articles.isEmpty()) {
+            Text(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .align(Alignment.Center),
+                text = stringResource(R.string.no_articles)
+            )
+        } else {
+            SuccessContent(
+                articles = articles,
+                nestedScrollConnection = nestedScrollConnection,
+                onArticleClick = onArticleClick,
+                onFavoriteClick = { article ->
+                    viewModel.removeFromFavorites(article)
+                }
+            )
         }
+    }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            if (articles.isEmpty()) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                        .align(Alignment.Center),
-                    text = stringResource(R.string.no_articles)
+    Row(
+        modifier = Modifier
+            .defaultMinSize()
+            .horizontalScroll(rememberScrollState())
+            .background(Color.Transparent)
+            .padding(horizontal = 16.dp, vertical = 0.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categories.forEach { category ->
+            FilterChip(
+                selected = category == selectedCategory,
+                onClick = { viewModel.changeCategory(category) },
+                label = { Text(stringResource(category.titleRes)) },
+                colors = FilterChipDefaults.filterChipColors().copy(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    disabledSelectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 )
-            } else {
-                SuccessContent(
-                    articles = articles,
-                    onArticleClick = onArticleClick,
-                    onFavoriteClick = { article ->
-                        viewModel.removeFromFavorites(article)
-//                        articles.refresh()
-                    }
-                )
-            }
+            )
         }
     }
 }
@@ -92,6 +91,7 @@ fun SavedScreen(
 @Composable
 fun SuccessContent(
     articles: List<Article>,
+    nestedScrollConnection: NestedScrollConnection,
     onArticleClick: (Article) -> Unit,
     onFavoriteClick: (Article) -> Unit
 ) {
@@ -106,8 +106,14 @@ fun SuccessContent(
     } else {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(24.dp),
+                .fillMaxSize()
+                .nestedScroll(nestedScrollConnection),
+            contentPadding = PaddingValues(
+                start = 24.dp,
+                top = CategoryBarHeight,
+                end = 24.dp,
+                bottom = 24.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             items(
@@ -123,3 +129,5 @@ fun SuccessContent(
         }
     }
 }
+
+private val CategoryBarHeight = 52.dp
