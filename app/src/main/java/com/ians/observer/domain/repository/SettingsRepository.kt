@@ -20,6 +20,9 @@ interface SettingsRepository {
     suspend fun setSearchProviderPreference(providerId: ProviderId)
     fun observeSearchProviderPreference(): Flow<ProviderId>
 
+    suspend fun setSearchProviderEnabled(providerId: ProviderId, enabled: Boolean)
+    fun observeEnabledSearchProviderIds(): Flow<Set<ProviderId>>
+
     suspend fun setNotificationPreference(enabled: Boolean)
     fun observeNotificationPreference(): Flow<Boolean>
 

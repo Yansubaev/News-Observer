@@ -30,6 +30,7 @@ class SettingsViewModel @Inject constructor(
 
     val feedProviderIds = newsProvidersRepository.getTopHeadlinesCapableProviderIds()
     val searchProviderIds = newsProvidersRepository.getSearchCapableProviderIds()
+    val availableProviderIds = newsProvidersRepository.getAvailableProviderIds()
 
     val selectedRegionState = settingsRepository.observeCountryPreference()
         .stateIn(
@@ -57,6 +58,13 @@ class SettingsViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = ProviderId.NEWS_DATA
+        )
+
+    val enabledSearchProviderIds = settingsRepository.observeEnabledSearchProviderIds()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = searchProviderIds
         )
 
     val notificationsEnabledState = settingsRepository.observeNotificationPreference()
@@ -97,6 +105,10 @@ class SettingsViewModel @Inject constructor(
 
     fun selectSearchProvider(providerId: ProviderId) = viewModelScope.launch {
         settingsRepository.setSearchProviderPreference(providerId)
+    }
+
+    fun setSearchProviderEnabled(providerId: ProviderId, enabled: Boolean) = viewModelScope.launch {
+        settingsRepository.setSearchProviderEnabled(providerId, enabled)
     }
 
     fun setNotificationEnabled(enabled: Boolean) = viewModelScope.launch {

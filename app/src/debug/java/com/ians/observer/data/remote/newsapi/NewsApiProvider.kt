@@ -46,7 +46,7 @@ class NewsApiProvider @Inject constructor(
         val page = pageToken?.value?.toIntOrNull() ?: 1
 
         val response = newsApiApi.getHeadlines(
-            country = request.country?.code ?: "us",
+            country = request.country?.toNewsApiCountry() ?: "us",
             category = request.category?.toNewsApiCategory(),
             page = page,
             pageSize = NETWORK_PAGE_SIZE
@@ -81,7 +81,7 @@ class NewsApiProvider @Inject constructor(
             query = request.query,
             page = pageToken?.value?.toIntOrNull() ?: 1,
             pageSize = NETWORK_PAGE_SIZE,
-            language = request.language?.code
+            language = request.language?.toNewsApiLanguage()
         )
 
         if (response.status != "ok") {

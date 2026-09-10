@@ -106,6 +106,7 @@ internal class FakeSettingsRepository(
     val language: NewsLanguage = NewsLanguage.EN,
     val feedProvider: ProviderId = ProviderId.NEWS_DATA,
     val searchProvider: ProviderId = ProviderId.NEWS_DATA,
+    val enabledSearchProviders: Set<ProviderId> = setOf(ProviderId.NEWS_DATA),
     var syncInterval: Long = 10 * 60 * 1_000L,
     var notificationsEnabled: Boolean = false,
     var notificationPermissionRequested: Boolean = false,
@@ -114,6 +115,7 @@ internal class FakeSettingsRepository(
     val languagePreference = MutableStateFlow(language)
     val feedProviderPreference = MutableStateFlow(feedProvider)
     val searchProviderPreference = MutableStateFlow(searchProvider)
+    val enabledSearchProvidersPreference = MutableStateFlow(enabledSearchProviders)
     val notificationPreferences = MutableStateFlow(notificationsEnabled)
     val notificationPermissionRequestedPreference =
         MutableStateFlow(notificationPermissionRequested)
@@ -143,6 +145,17 @@ internal class FakeSettingsRepository(
     override fun observeFeedProviderPreference(): Flow<ProviderId> = feedProviderPreference
 
     override fun observeSearchProviderPreference(): Flow<ProviderId> = searchProviderPreference
+
+    override suspend fun setSearchProviderEnabled(providerId: ProviderId, enabled: Boolean) {
+        enabledSearchProvidersPreference.value = enabledSearchProvidersPreference.value
+            .toMutableSet()
+            .apply {
+                if (enabled) add(providerId) else remove(providerId)
+            }
+    }
+
+    override fun observeEnabledSearchProviderIds(): Flow<Set<ProviderId>> =
+        enabledSearchProvidersPreference
 
     override suspend fun setNotificationPreference(enabled: Boolean) {
         notificationsEnabled = enabled
@@ -202,6 +215,7 @@ internal class FakeNewsProvidersRepository(
     val categoriesByProvider: MutableMap<ProviderId, Set<Category>> = mutableMapOf(),
     var topHeadlinesProviderIds: Set<ProviderId> = emptySet(),
     var searchProviderIds: Set<ProviderId> = emptySet(),
+    var allProviderIds: Set<ProviderId> = emptySet(),
 ) : NewsProvidersRepository {
     val requestedCategoryProviderIds = mutableListOf<ProviderId>()
 
@@ -214,6 +228,8 @@ internal class FakeNewsProvidersRepository(
         topHeadlinesProviderIds
 
     override fun getSearchCapableProviderIds(): Set<ProviderId> = searchProviderIds
+
+    override fun getAvailableProviderIds(): Set<ProviderId> = allProviderIds
 }
 
 internal fun testArticle(

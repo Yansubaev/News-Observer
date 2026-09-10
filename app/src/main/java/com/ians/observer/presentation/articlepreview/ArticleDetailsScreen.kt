@@ -50,6 +50,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -66,7 +67,9 @@ import com.ians.observer.presentation.helper.extractArticleHost
 import com.ians.observer.presentation.helper.openArticleUrl
 import com.ians.observer.presentation.helper.openUriInBrowser
 import com.ians.observer.presentation.helper.parseArticleUri
+import com.ians.observer.presentation.mapper.attributionRes
 import com.ians.observer.presentation.mapper.titleRes
+import com.ians.observer.presentation.mapper.websiteUrlRes
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
@@ -128,6 +131,7 @@ fun ArticleDetailsSheet(
                     val article = uiState.article
                     val shareContextTitle =
                         stringResource(R.string.article_details_share_chooser_title)
+                    val providerSite = stringResource(article.providerId.websiteUrlRes)
                     ArticleDetailsScreen(
                         article = article,
                         onClose = closeFromButton,
@@ -159,6 +163,18 @@ fun ArticleDetailsSheet(
                         },
                         onOpenPublisher = {
                             parseArticleUri(article.publisher.websiteUrl)?.let { uri ->
+                                when (val openResult = openUriInBrowser(uri, context)) {
+                                    OpenArticleResult.Opened -> Unit
+                                    is OpenArticleResult.FailedToOpen -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(openResult.message)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onOpenProviderSite = {
+                            parseArticleUri(providerSite)?.let { uri ->
                                 when (val openResult = openUriInBrowser(uri, context)) {
                                     OpenArticleResult.Opened -> Unit
                                     is OpenArticleResult.FailedToOpen -> {
@@ -340,6 +356,7 @@ fun ArticleDetailsScreen(
     onShare: () -> Unit,
     onReadArticle: () -> Unit,
     onOpenPublisher: () -> Unit,
+    onOpenProviderSite: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -528,13 +545,30 @@ fun ArticleDetailsScreen(
 
                 Spacer(Modifier.height(4.dp))
 
+                val providerName = stringResource(article.providerId.attributionRes)
                 val providerText = when (article.providerId) {
+                    ProviderId.GDELT -> stringResource(
+                        R.string.article_details_metadata_provider,
+                        providerName
+                    )
+
                     else -> stringResource(
                         R.string.article_details_data_provider,
-                        stringResource(article.providerId.titleRes)
+                        providerName
                     )
                 }
-                Text(providerText, color = MaterialTheme.colorScheme.secondary)
+
+                Text(
+                    modifier = Modifier
+                        .clickable(
+                            role = Role.Button,
+                            onClick = onOpenProviderSite,
+                        )
+                        .padding(vertical = 6.dp),
+                    text = providerText,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textDecoration = TextDecoration.Underline
+                )
 
             }
             //endregion Original
@@ -597,7 +631,7 @@ fun ArticleDetailsUiPreview() {
             imageUrl = null,
             publishedAt = 1710007200000,
             isFavorite = false,
-            providerId = ProviderId.NEWS_API,
+            providerId = ProviderId.NEWS_DATA,
             category = Category.TECHNOLOGY
         ),
         onClose = {},
@@ -605,6 +639,7 @@ fun ArticleDetailsUiPreview() {
         onShare = {},
         onReadArticle = {},
         onOpenPublisher = {},
+        onOpenProviderSite = {},
     )
 }
 

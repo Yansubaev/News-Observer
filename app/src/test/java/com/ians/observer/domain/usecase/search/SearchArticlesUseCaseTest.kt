@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -39,19 +38,9 @@ class SearchArticlesUseCaseTest {
     }
 
     @Test
-    fun `builds search spec from settings and marks favorite articles`() = runTest {
-        val favoriteArticle = testArticle(
-            id = "favorite",
-            originalUrl = "https://example.com/favorite",
-        )
-        val regularArticle = testArticle(
-            id = "regular",
-            originalUrl = "https://example.com/regular",
-            isFavorite = true,
-        )
+    fun `builds search spec from settings`() = runTest {
         val articleRepository = FakeArticleRepository().apply {
-            searchPagingFlow = flowOf(PagingData.from(listOf(favoriteArticle, regularArticle)))
-            favoriteUrls.value = setOf(favoriteArticle.originalUrl)
+            searchPagingFlow = flowOf(PagingData.from(listOf(testArticle())))
         }
         val settingsRepository = FakeSettingsRepository(
             country = NewsCountry.GB,
@@ -60,7 +49,7 @@ class SearchArticlesUseCaseTest {
         )
         val useCase = SearchArticlesUseCase(articleRepository, settingsRepository)
 
-        val articles = useCase("android").take(1).asSnapshot()
+        useCase("android").take(1).asSnapshot()
 
         assertEquals(
             listOf(
@@ -74,13 +63,34 @@ class SearchArticlesUseCaseTest {
             ),
             articleRepository.searchRequests,
         )
-        assertTrue(articles.first { it.id == favoriteArticle.id }.isFavorite)
-        assertFalse(articles.first { it.id == regularArticle.id }.isFavorite)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `favorite change creates a new paging generation`() = runTest {
+    fun `selected provider change restarts the submitted search`() = runTest {
+        val articleRepository = FakeArticleRepository().apply {
+            searchPagingFlowFactory = { flowOf(PagingData.empty()) }
+        }
+        val settingsRepository = FakeSettingsRepository(searchProvider = ProviderId.NEWS_DATA)
+        val useCase = SearchArticlesUseCase(articleRepository, settingsRepository)
+
+        val collectionJob = launch {
+            useCase("android").take(2).toList()
+        }
+
+        runCurrent()
+        settingsRepository.setSearchProviderPreference(ProviderId.NEWS_API)
+        collectionJob.join()
+
+        assertEquals(
+            listOf(ProviderId.NEWS_DATA, ProviderId.NEWS_API),
+            articleRepository.searchRequests.map { it.providerIds.single() }
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `favorite change does not restart the search`() = runTest {
         val article = testArticle(
             id = "article",
             originalUrl = "https://example.com/article",
@@ -97,16 +107,15 @@ class SearchArticlesUseCaseTest {
 
         val generations = mutableListOf<PagingData<Article>>()
         val collectionJob = launch {
-            useCase("android").take(2).toList(generations)
+            useCase("android").toList(generations)
         }
 
         runCurrent()
         articleRepository.favoriteUrls.value = setOf(article.originalUrl)
-        collectionJob.join()
+        runCurrent()
+        collectionJob.cancel()
 
-        val articles = flowOf(generations.last()).asSnapshot()
-
-        assertEquals(2, articleRepository.searchRequests.size)
-        assertTrue(articles.single().isFavorite)
+        assertEquals(1, articleRepository.searchRequests.size)
+        assertEquals(1, generations.size)
     }
 }

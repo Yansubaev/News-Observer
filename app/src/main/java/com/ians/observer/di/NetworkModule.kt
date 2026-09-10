@@ -1,6 +1,8 @@
 package com.ians.observer.di
 
 import com.ians.observer.BuildConfig
+import com.ians.observer.data.remote.gdelt.GdeltApi
+import com.ians.observer.data.remote.gdelt.GdeltThrottleInterceptor
 import com.ians.observer.data.remote.newsdata.NewsDataApi
 import dagger.Module
 import dagger.Provides
@@ -17,6 +19,8 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    //region NewsData Network
     @Provides
     @Singleton
     @NewsDataNetwork
@@ -59,8 +63,49 @@ object NetworkModule {
     fun provideNewsDataApi(@NewsDataNetwork retrofit: Retrofit): NewsDataApi {
         return retrofit.create(NewsDataApi::class.java)
     }
+    //endregion NewsData Network
+
+    //region GDELT Network
+    @Provides
+    @Singleton
+    @GdeltNetwork
+    fun provideGdeltOkHttpClient(
+        throttleInterceptor: GdeltThrottleInterceptor
+    ): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+
+        return OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(throttleInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @GdeltNetwork
+    fun provideGdeltRetrofit(@GdeltNetwork okHttpClient: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(GdeltApi.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideGdeltApi(@GdeltNetwork retrofit: Retrofit): GdeltApi {
+        return retrofit.create(GdeltApi::class.java)
+    }
+    //endregion GDELT Network
 }
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class NewsDataNetwork
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class GdeltNetwork
