@@ -26,4 +26,7 @@ class NewsProvidersRepositoryImpl @Inject constructor(
     override fun getSearchCapableProviderIds(): Set<ProviderId> =
         newsProviderRegistry.idsSupporting(ProviderCapabilities.SEARCH).toSet()
 
+    override fun getAvailableProviderIds(): Set<ProviderId> =
+        newsProviderRegistry.availableIds
+
 }

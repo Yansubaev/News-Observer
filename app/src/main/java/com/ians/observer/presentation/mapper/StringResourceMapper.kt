@@ -114,4 +114,21 @@ val ProviderId.titleRes: Int
     get() = when (this) {
         ProviderId.NEWS_API -> R.string.provider_news_api
         ProviderId.NEWS_DATA -> R.string.provider_news_data
+        ProviderId.GDELT -> R.string.provider_gdelt
+    }
+
+@get:StringRes
+val ProviderId.attributionRes: Int
+    get() = when (this) {
+        ProviderId.NEWS_API -> R.string.provider_news_api
+        ProviderId.NEWS_DATA -> R.string.provider_news_data
+        ProviderId.GDELT -> R.string.provider_gdelt_attribution
+    }
+
+@get:StringRes
+val ProviderId.websiteUrlRes: Int
+    get() = when (this) {
+        ProviderId.NEWS_API -> R.string.provider_news_api_url
+        ProviderId.NEWS_DATA -> R.string.provider_news_data_url
+        ProviderId.GDELT -> R.string.provider_gdelt_url
     }

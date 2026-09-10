@@ -52,9 +52,9 @@ class NewsDataProvider @Inject constructor(
         val page = pageToken?.value
 
         val response = newsDataApi.getLatest(
-            country = request.country?.code,
+            country = request.country?.toNewsDataCountry(),
             category = request.category?.toNewsDataCategory(),
-            language = request.language?.code,
+            language = request.language?.toNewsDataLanguage(),
             page = page,
         )
 
@@ -86,9 +86,9 @@ class NewsDataProvider @Inject constructor(
         val page = pageToken?.value
 
         val response = newsDataApi.searchNews(
-            country = request.country?.code,
+            country = request.country?.toNewsDataCountry(),
             category = request.category?.toNewsDataCategory(),
-            language = request.language?.code,
+            language = request.language?.toNewsDataLanguage(),
             page = page,
             query = request.query,
             size = 10,

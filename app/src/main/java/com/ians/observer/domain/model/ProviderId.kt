@@ -4,7 +4,8 @@ enum class ProviderId(
     val value: String
 ) {
     NEWS_API("news-api"),
-    NEWS_DATA("news-data");
+    NEWS_DATA("news-data"),
+    GDELT("gdelt");
 
     companion object {
         fun fromValue(value: String): ProviderId =

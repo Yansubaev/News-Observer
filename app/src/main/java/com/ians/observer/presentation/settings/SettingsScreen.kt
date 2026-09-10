@@ -6,6 +6,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -51,7 +54,10 @@ import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.presentation.helper.canPostNotifications
 import com.ians.observer.presentation.helper.openNotificationSettings
+import com.ians.observer.presentation.helper.openUriInBrowser
+import com.ians.observer.presentation.helper.parseArticleUri
 import com.ians.observer.presentation.mapper.titleRes
+import com.ians.observer.presentation.mapper.websiteUrlRes
 import com.ians.observer.presentation.navigation.SettingsScreen
 
 @Composable
@@ -214,8 +220,18 @@ fun MainSettingsScreen(
     }
 
     if (showAboutDialog) {
+        val providerSiteUrls = viewModel.availableProviderIds.associateWith { providerId ->
+            stringResource(providerId.websiteUrlRes)
+        }
+
         AboutAlertDialog(
             versionName = BuildConfig.VERSION_NAME,
+            providerIds = viewModel.availableProviderIds,
+            onOpenProviderSite = { providerId ->
+                providerSiteUrls[providerId]?.let(::parseArticleUri)?.let { uri ->
+                    openUriInBrowser(uri, context)
+                }
+            },
             onDismiss = {
                 showAboutDialog = false
             }
@@ -246,17 +262,39 @@ fun SearchProviderSettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val selectedProviderId by viewModel.selectedSearchProvider.collectAsStateWithLifecycle()
-    val availableProviderIds = viewModel.searchProviderIds
+    val enabledProviderIds by viewModel.enabledSearchProviderIds.collectAsStateWithLifecycle()
 
-    val map = mutableMapOf<ProviderId, Boolean>()
-    for (providerId in availableProviderIds) {
-        map[providerId] = providerId == selectedProviderId
-    }
+    SearchProvidersSettingsScreenUI(
+        providerIds = viewModel.searchProviderIds,
+        enabledProviderIds = enabledProviderIds,
+        onProviderEnabledChange = viewModel::setSearchProviderEnabled
+    )
+}
 
-    ProvidersSettingsScreenUI(map) { providerId ->
-        viewModel.selectSearchProvider(providerId)
-    }
+@Composable
+private fun SearchProvidersSettingsScreenUI(
+    providerIds: Set<ProviderId>,
+    enabledProviderIds: Set<ProviderId>,
+    onProviderEnabledChange: (ProviderId, Boolean) -> Unit,
+) {
+    val modifier = Modifier
+        .fillMaxWidth()
+        .height(68.dp)
+
+    val list = ProviderId.entries
+        .filter { it in providerIds }
+        .map { providerId ->
+            SettingsItem.Checkbox(
+                title = providerId.titleRes,
+                checked = providerId in enabledProviderIds,
+                enabled = providerId !in enabledProviderIds || enabledProviderIds.size > 1,
+                onCheckedChange = { enabled ->
+                    onProviderEnabledChange(providerId, enabled)
+                }
+            )
+        }
+
+    SettingsListView(list = list, modifier = modifier)
 }
 
 @Composable
@@ -496,6 +534,8 @@ fun ClearCacheDialog(
 @Composable
 fun AboutAlertDialog(
     versionName: String,
+    providerIds: Set<ProviderId>,
+    onOpenProviderSite: (ProviderId) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -525,15 +565,28 @@ fun AboutAlertDialog(
                 )
 
                 Text(
-                    text = stringResource(R.string.provider_news_api) +
-                            " • " +
-                            stringResource(R.string.provider_news_data)
+                    text = providerIds
+                        .map { providerId -> stringResource(providerId.titleRes) }
+                        .joinToString(separator = " • ")
                 )
 
                 Text(
                     text = stringResource(R.string.about_news_attribution),
                     style = MaterialTheme.typography.bodySmall
                 )
+
+                if (ProviderId.GDELT in providerIds) {
+                    Text(
+                        modifier = Modifier.clickable(
+                            role = Role.Button,
+                            onClick = { onOpenProviderSite(ProviderId.GDELT) }
+                        ),
+                        text = stringResource(R.string.about_gdelt_attribution),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
             }
         },
         confirmButton = {

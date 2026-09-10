@@ -7,4 +7,5 @@ interface NewsProvidersRepository {
     fun getSupportedCategoriesForProviderId(id: ProviderId): Set<Category>
     fun getTopHeadlinesCapableProviderIds(): Set<ProviderId>
     fun getSearchCapableProviderIds(): Set<ProviderId>
+    fun getAvailableProviderIds(): Set<ProviderId>
 }

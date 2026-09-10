@@ -36,6 +36,7 @@ sealed class SettingsItem {
     data class Checkbox(
         val title: Int,
         val checked: Boolean,
+        val enabled: Boolean = true,
         val onCheckedChange: (Boolean) -> Unit = {},
         val iconRes: Int? = null,
         val iconContentDescription: Int? = null

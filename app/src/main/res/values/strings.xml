@@ -29,6 +29,7 @@
     <string name="search_prompt_title">Search for news</string>
     <string name="search_prompt_message">Type a query to find articles across your sources.</string>
     <string name="search_no_results">Nothing found for “%1$s”</string>
+    <string name="search_provider">Source: %1$s</string>
 
     <!-- Article list states -->
     <string name="list_error_title">Couldn’t load articles</string>
@@ -99,6 +100,7 @@
     <string name="about_version">Version %1$s</string>
     <string name="about_news_sources">News sources</string>
     <string name="about_news_attribution">News content and metadata are provided by third-party services.</string>
+    <string name="about_gdelt_attribution">Article metadata from The GDELT Project, used under its terms of use.</string>
     <string name="about_source_code">Source code</string>
     <string name="about_privacy_policy">Privacy policy</string>
     <string name="about_open_source_licenses">Open-source licenses</string>
@@ -114,6 +116,11 @@
 
     <string name="provider_news_api" translatable="false">News API</string>
     <string name="provider_news_data" translatable="false">NewsData.io</string>
+    <string name="provider_gdelt" translatable="false">GDELT</string>
+    <string name="provider_gdelt_attribution" translatable="false">The GDELT Project</string>
+    <string name="provider_news_api_url" translatable="false">https://newsapi.org/</string>
+    <string name="provider_news_data_url" translatable="false">https://newsdata.io/</string>
+    <string name="provider_gdelt_url" translatable="false">https://www.gdeltproject.org/</string>
 
     <!-- News languages -->
     <string name="news_language_ar">Arabic</string>

@@ -1,5 +1,6 @@
 package com.ians.observer.di
 
+import com.ians.observer.data.remote.gdelt.GdeltProvider
 import com.ians.observer.data.remote.newsdata.NewsDataProvider
 import com.ians.observer.data.remote.provider.NewsProvider
 import com.ians.observer.domain.model.ProviderId
@@ -24,5 +25,13 @@ abstract class NewsProviderModule {
     @NewsProviderKey(ProviderId.NEWS_DATA)
     abstract fun bindNewsDataProvider(
         provider: NewsDataProvider
+    ): NewsProvider
+
+    @Binds
+    @Singleton
+    @IntoMap
+    @NewsProviderKey(ProviderId.GDELT)
+    abstract fun bindGdeltProvider(
+        provider: GdeltProvider
     ): NewsProvider
 }

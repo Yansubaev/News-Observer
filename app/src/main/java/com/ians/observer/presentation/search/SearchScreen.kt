@@ -17,11 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -55,6 +59,7 @@ import com.ians.observer.presentation.components.PagedArticleList
 import com.ians.observer.presentation.components.RefreshErrorSnackbar
 import com.ians.observer.presentation.components.isRemoteRefreshing
 import com.ians.observer.presentation.components.refreshError
+import com.ians.observer.presentation.mapper.titleRes
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
@@ -69,6 +74,8 @@ fun SearchScreen(
     val submittedQuery by viewModel.queryState.collectAsStateWithLifecycle()
     val hasQuery by viewModel.hasQuery.collectAsStateWithLifecycle()
     val searchHistory by viewModel.searchHistory.collectAsStateWithLifecycle()
+    val enabledSearchProviderIds by viewModel.enabledSearchProviderIds.collectAsStateWithLifecycle()
+    val selectedSearchProvider by viewModel.selectedSearchProvider.collectAsStateWithLifecycle()
 
     SearchScreenUI(
         query = liveQuery,
@@ -82,7 +89,10 @@ fun SearchScreen(
         onArticleClick = onArticleClick,
         submittedQuery = submittedQuery,
         hasQuery = hasQuery,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
+        enabledSearchProviderIds = enabledSearchProviderIds,
+        selectedSearchProvider = selectedSearchProvider,
+        onSearchProviderSelected = viewModel::selectSearchProvider
     )
 }
 
@@ -101,6 +111,9 @@ fun SearchScreenUI(
     submittedQuery: String = "",
     hasQuery: Boolean = false,
     snackbarHostState: SnackbarHostState? = null,
+    enabledSearchProviderIds: Set<ProviderId> = emptySet(),
+    selectedSearchProvider: ProviderId? = null,
+    onSearchProviderSelected: (ProviderId) -> Unit = {},
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val horizontalPadding by animateDpAsState(
@@ -198,6 +211,16 @@ fun SearchScreenUI(
             }
         }
 
+        selectedSearchProvider
+            ?.takeIf { it in enabledSearchProviderIds && enabledSearchProviderIds.size > 1 }
+            ?.let { selectedProviderId ->
+            SearchProviderSelector(
+                providerIds = ProviderId.entries.filter { it in enabledSearchProviderIds },
+                selectedProviderId = selectedProviderId,
+                onProviderSelected = onSearchProviderSelected
+            )
+            }
+
         SearchResults(
             articles = articles,
             hasQuery = hasQuery,
@@ -210,11 +233,55 @@ fun SearchScreenUI(
     }
 }
 
-/**
- * Search has no pull-to-refresh: results are replaced by a new query, not refreshed. Progress is
- * shown in two ways instead — a thin bar under the search field while previous results are still
- * on screen, and skeletons (via [PagedArticleList]) when there is nothing to keep.
- */
+@Composable
+private fun SearchProviderSelector(
+    providerIds: List<ProviderId>,
+    selectedProviderId: ProviderId,
+    onProviderSelected: (ProviderId) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        FilterChip(
+            selected = true,
+            onClick = { expanded = true },
+            label = {
+                Text(
+                    stringResource(
+                        R.string.search_provider,
+                        stringResource(selectedProviderId.titleRes)
+                    )
+                )
+            },
+            trailingIcon = { Text("⌄") }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            providerIds.forEach { providerId ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(providerId.titleRes)) },
+                    onClick = {
+                        onProviderSelected(providerId)
+                        expanded = false
+                    },
+                    trailingIcon = {
+                        if (providerId == selectedProviderId) {
+                            RadioButton(selected = true, onClick = null)
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun ColumnScope.SearchResults(
     articles: LazyPagingItems<Article>,
@@ -228,7 +295,6 @@ private fun ColumnScope.SearchResults(
     val loadState = articles.loadState
     val hasResults = articles.itemCount > 0
 
-    // Reserve the height unconditionally so results do not jump when the bar appears.
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -236,7 +302,7 @@ private fun ColumnScope.SearchResults(
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (loadState.isRemoteRefreshing && hasResults) {
+        if (hasQuery && loadState.isRemoteRefreshing) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
     }

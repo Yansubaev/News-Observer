@@ -230,10 +230,12 @@ fun SettingsItemCheckboxVariant(
     item: SettingsItem.Checkbox, modifier: Modifier = Modifier
 ) {
     Row(
-        modifier.toggleable(
+        modifier
+            .alpha(if (item.enabled) 1f else 0.38f)
+            .toggleable(
             value = item.checked,
             interactionSource = null,
-            enabled = true,
+            enabled = item.enabled,
             role = Role.Checkbox,
             onValueChange = item.onCheckedChange,
         ),
@@ -249,7 +251,7 @@ fun SettingsItemCheckboxVariant(
             text = stringResource(item.title)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Checkbox(item.checked, onCheckedChange = null)
+        Checkbox(item.checked, onCheckedChange = null, enabled = item.enabled)
         Spacer(modifier = Modifier.width(12.dp))
     }
 }

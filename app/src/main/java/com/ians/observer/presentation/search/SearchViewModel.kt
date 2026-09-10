@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.ians.observer.domain.model.Article
+import com.ians.observer.domain.model.ProviderId
+import com.ians.observer.domain.repository.NewsProvidersRepository
 import com.ians.observer.domain.repository.SearchHistoryRepository
+import com.ians.observer.domain.repository.SettingsRepository
+import com.ians.observer.domain.usecase.favorite.MarkFavoriteArticlesUseCase
 import com.ians.observer.domain.usecase.favorite.SetArticleFavoriteUseCase
 import com.ians.observer.domain.usecase.search.ObserveSearchHistoryUseCase
 import com.ians.observer.domain.usecase.search.SearchArticlesUseCase
@@ -25,9 +29,12 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val setArticleFavoriteUseCase: SetArticleFavoriteUseCase,
     private val searchArticlesUseCase: SearchArticlesUseCase,
+    private val markFavoriteArticlesUseCase: MarkFavoriteArticlesUseCase,
     private val observeSearchHistoryUseCase: ObserveSearchHistoryUseCase,
 
     private val searchHistoryRepository: SearchHistoryRepository,
+    private val settingsRepository: SettingsRepository,
+    private val newsProvidersRepository: NewsProvidersRepository,
 ) : ViewModel() {
 
     private val _queryState = MutableStateFlow("")
@@ -35,6 +42,22 @@ class SearchViewModel @Inject constructor(
 
     private val _liveQuery = MutableStateFlow("")
     val liveQuery: StateFlow<String> = _liveQuery.asStateFlow()
+
+    private val searchProviderIds = newsProvidersRepository.getSearchCapableProviderIds()
+
+    val enabledSearchProviderIds = settingsRepository.observeEnabledSearchProviderIds()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = searchProviderIds
+        )
+
+    val selectedSearchProvider = settingsRepository.observeSearchProviderPreference()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ProviderId.NEWS_DATA
+        )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val searchHistory = liveQuery
@@ -58,9 +81,11 @@ class SearchViewModel @Inject constructor(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    val searchResultArticles = queryState
-        .flatMapLatest(searchArticlesUseCase::invoke)
-        .cachedIn(viewModelScope)
+    val searchResultArticles = markFavoriteArticlesUseCase(
+        queryState
+            .flatMapLatest(searchArticlesUseCase::invoke)
+            .cachedIn(viewModelScope)
+    )
 
     fun setQueryText(query: String) {
         _liveQuery.value = query
@@ -75,6 +100,10 @@ class SearchViewModel @Inject constructor(
 
         _queryState.value = query
         searchHistoryRepository.saveSearchQuery(query)
+    }
+
+    fun selectSearchProvider(providerId: ProviderId) = viewModelScope.launch {
+        settingsRepository.setSearchProviderPreference(providerId)
     }
 
     fun setFavorite(article: Article, shouldBeFavorite: Boolean) = viewModelScope.launch {
