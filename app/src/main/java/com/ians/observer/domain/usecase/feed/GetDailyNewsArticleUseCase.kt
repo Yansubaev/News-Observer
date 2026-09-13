@@ -3,11 +3,9 @@ package com.ians.observer.domain.usecase.feed
 import com.ians.observer.domain.model.Article
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
-import com.ians.observer.domain.model.NewsCountry
-import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.repository.ArticleRepository
 import com.ians.observer.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class GetDailyNewsArticleUseCase @Inject constructor(
@@ -16,14 +14,9 @@ class GetDailyNewsArticleUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): Article? {
-        val country = settingsRepository.observeCountryPreference().firstOrNull()
-            ?: NewsCountry.US
-
-        val lang = settingsRepository.observeLanguagePreference().firstOrNull()
-            ?: NewsLanguage.EN
-
-        val feedProviderId = settingsRepository.observeFeedProviderPreference().firstOrNull()
-            ?: return null
+        val country = settingsRepository.observeCountryPreference().first()
+        val lang = settingsRepository.observeLanguagePreference().first()
+        val feedProviderId = settingsRepository.observeFeedProviderPreference().first()
 
         val spec = FeedSpec(
             country = country,
