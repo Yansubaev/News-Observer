@@ -5,12 +5,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.ians.observer.data.local.SearchHistoryDataStore
+import com.ians.observer.data.local.SettingsDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -41,11 +42,3 @@ object DataStoreModule {
             }
         )
 }
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class SettingsDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class SearchHistoryDataStore

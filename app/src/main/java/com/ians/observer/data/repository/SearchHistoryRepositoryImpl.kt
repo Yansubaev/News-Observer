@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.ians.observer.di.SearchHistoryDataStore
+import com.ians.observer.data.local.SearchHistoryDataStore
 import com.ians.observer.domain.repository.SearchHistoryRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow

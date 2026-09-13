@@ -6,9 +6,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.ians.observer.data.local.SettingsDataStore
 import com.ians.observer.data.remote.provider.NewsProviderRegistry
 import com.ians.observer.data.remote.provider.model.ProviderCapabilities
-import com.ians.observer.di.SettingsDataStore
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId

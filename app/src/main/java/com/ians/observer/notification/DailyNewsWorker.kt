@@ -1,4 +1,4 @@
-package com.ians.observer.data.background
+package com.ians.observer.notification
 
 import android.Manifest
 import android.content.Context

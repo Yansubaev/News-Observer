@@ -3,7 +3,7 @@ package com.ians.observer
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import com.ians.observer.data.background.DailyArticleNotifier
+import com.ians.observer.notification.DailyArticleNotifier
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

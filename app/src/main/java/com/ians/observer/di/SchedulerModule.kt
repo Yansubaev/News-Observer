@@ -1,6 +1,6 @@
 package com.ians.observer.di
 
-import com.ians.observer.data.background.WorkManagerDailyNewsScheduler
+import com.ians.observer.notification.WorkManagerDailyNewsScheduler
 import com.ians.observer.domain.background.DailyNewsScheduler
 import dagger.Binds
 import dagger.Module
