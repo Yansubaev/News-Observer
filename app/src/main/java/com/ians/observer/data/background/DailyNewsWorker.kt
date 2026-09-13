@@ -9,16 +9,14 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.gson.JsonParseException
-import com.ians.observer.data.remote.provider.exception.ProviderException
+import com.ians.observer.domain.exception.NewsException
+import com.ians.observer.domain.exception.isTransient
 import com.ians.observer.domain.repository.SettingsRepository
 import com.ians.observer.domain.usecase.feed.GetDailyNewsArticleUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
-import retrofit2.HttpException
-import java.io.IOException
 
 @HiltWorker
 class DailyNewsWorker @AssistedInject constructor(
@@ -43,18 +41,8 @@ class DailyNewsWorker @AssistedInject constructor(
         Result.success()
     } catch (e: CancellationException) {
         throw e
-    } catch (e: IOException) {
-        retryOrFinish()
-    } catch (e: HttpException) {
-        when (e.code()) {
-            408, 429 -> retryOrFinish()
-            in 500..599 -> retryOrFinish()
-            else -> Result.failure()
-        }
-    } catch (e: JsonParseException) {
-        Result.failure()
-    } catch (e: ProviderException) {
-        Result.failure()
+    } catch (e: NewsException) {
+        if (e.isTransient) retryOrFinish() else Result.failure()
     }
 
     private fun retryOrFinish(): Result =

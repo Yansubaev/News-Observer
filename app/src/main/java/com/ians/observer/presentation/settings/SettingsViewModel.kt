@@ -125,13 +125,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearCachedArticles() = viewModelScope.launch {
-        clearArticleCacheUseCase(
-            onSuccess = {
-                _events.send(SettingsEvent.CacheCleared)
-            },
-            onFailed = {
-                _events.send(SettingsEvent.CacheClearFailed)
-            }
-        )
+        val event = if (clearArticleCacheUseCase()) {
+            SettingsEvent.CacheCleared
+        } else {
+            SettingsEvent.CacheClearFailed
+        }
+        _events.send(event)
     }
 }

@@ -12,64 +12,44 @@ import org.junit.Test
 class ClearArticleCacheUseCaseTest {
 
     @Test
-    fun `calls success callback after cache is cleared`() = runTest {
+    fun `returns true after cache is cleared`() = runTest {
         val repository = FakeArticleRepository()
         val useCase = ClearArticleCacheUseCase(repository)
-        var successCalled = false
-        var failureCalled = false
 
-        useCase(
-            onSuccess = { successCalled = true },
-            onFailed = { failureCalled = true },
-        )
+        val result = useCase()
 
         assertEquals(1, repository.clearCacheCallCount)
-        assertTrue(successCalled)
-        assertFalse(failureCalled)
+        assertTrue(result)
     }
 
     @Test
-    fun `passes repository exception to failure callback`() = runTest {
-        val expectedException = IllegalStateException("Cannot clear cache")
+    fun `returns false when repository fails`() = runTest {
         val repository = FakeArticleRepository().apply {
-            clearCacheException = expectedException
+            clearCacheException = IllegalStateException("Cannot clear cache")
         }
         val useCase = ClearArticleCacheUseCase(repository)
-        var successCalled = false
-        var actualException: Exception? = null
 
-        useCase(
-            onSuccess = { successCalled = true },
-            onFailed = { actualException = it },
-        )
+        val result = useCase()
 
         assertEquals(1, repository.clearCacheCallCount)
-        assertFalse(successCalled)
-        assertSame(expectedException, actualException)
+        assertFalse(result)
     }
 
     @Test
-    fun `rethrows cancellation without invoking callbacks`() = runTest {
+    fun `rethrows cancellation`() = runTest {
         val expectedException = CancellationException("Test cancellation")
         val repository = FakeArticleRepository().apply {
             clearCacheException = expectedException
         }
         val useCase = ClearArticleCacheUseCase(repository)
-        var successCalled = false
-        var failureCalled = false
         var actualException: CancellationException? = null
 
         try {
-            useCase(
-                onSuccess = { successCalled = true },
-                onFailed = { failureCalled = true },
-            )
+            useCase()
         } catch (exception: CancellationException) {
             actualException = exception
         }
 
         assertSame(expectedException, actualException)
-        assertFalse(successCalled)
-        assertFalse(failureCalled)
     }
 }

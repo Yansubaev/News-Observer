@@ -1,5 +1,6 @@
 package com.ians.observer.domain.usecase.feed
 
+import com.ians.observer.domain.exception.NewsException
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.FeedSpec
 import com.ians.observer.domain.model.NewsCountry
@@ -65,24 +66,8 @@ class GetDailyNewsArticleUseCaseTest {
     }
 
     @Test
-    fun `invalid provider configuration returns null`() = runTest {
-        val articleRepository = FakeArticleRepository().apply {
-            fetchTopHeadlinesException = IllegalArgumentException("Provider is unavailable")
-        }
-        val useCase = GetDailyNewsArticleUseCase(
-            articleRepository = articleRepository,
-            settingsRepository = FakeSettingsRepository(),
-        )
-
-        val result = useCase()
-
-        assertNull(result)
-        assertTrue(articleRepository.notificationArticles.isEmpty())
-    }
-
-    @Test
     fun `network error is propagated so worker can retry`() = runTest {
-        val expectedException = IOException("No connection")
+        val expectedException = NewsException.NoConnection(ProviderId.NEWS_DATA, IOException("No connection"))
         val articleRepository = FakeArticleRepository().apply {
             fetchTopHeadlinesException = expectedException
         }
@@ -90,11 +75,11 @@ class GetDailyNewsArticleUseCaseTest {
             articleRepository = articleRepository,
             settingsRepository = FakeSettingsRepository(),
         )
-        var actualException: IOException? = null
+        var actualException: NewsException? = null
 
         try {
             useCase()
-        } catch (exception: IOException) {
+        } catch (exception: NewsException) {
             actualException = exception
         }
 

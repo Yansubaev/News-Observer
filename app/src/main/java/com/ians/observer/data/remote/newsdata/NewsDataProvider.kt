@@ -1,12 +1,13 @@
 package com.ians.observer.data.remote.newsdata
 
 import com.ians.observer.data.remote.provider.NewsProvider
-import com.ians.observer.data.remote.provider.exception.ProviderException
 import com.ians.observer.data.remote.provider.model.FeedRequest
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.data.remote.provider.model.ProviderPage
 import com.ians.observer.data.remote.provider.model.SearchRequest
+import com.ians.observer.data.remote.provider.providerCall
+import com.ians.observer.domain.exception.NewsException
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import javax.inject.Inject
@@ -51,27 +52,20 @@ class NewsDataProvider @Inject constructor(
     ): ProviderPage {
         val page = pageToken?.value
 
-        val response = newsDataApi.getLatest(
-            country = request.country?.toNewsDataCountry(),
-            category = request.category?.toNewsDataCategory(),
-            language = request.language?.toNewsDataLanguage(),
-            page = page,
-        )
-
-        if (response.status != "success") {
-            throw ProviderException(
-                providerId = ProviderId.NEWS_DATA,
-                message = "NewsAPI return status: ${response.status}"
+        val response = providerCall(id) {
+            newsDataApi.getLatest(
+                country = request.country?.toNewsDataCountry(),
+                category = request.category?.toNewsDataCategory(),
+                language = request.language?.toNewsDataLanguage(),
+                page = page,
             )
         }
 
+        if (response.status != "success") {
+            throw NewsException.InvalidResponse(id)
+        }
 
         val nextToken = response.nextPage
-
-        println("--------------------------------")
-        println(response.results.size)
-        println(response.results.filter { !it.duplicate }.size)
-        println(response.results.filter { it.duplicate }.map { it.title })
 
         return ProviderPage(
             articles = response.results.map { it.toRemoteArticle() },
@@ -85,20 +79,19 @@ class NewsDataProvider @Inject constructor(
     ): ProviderPage {
         val page = pageToken?.value
 
-        val response = newsDataApi.searchNews(
-            country = request.country?.toNewsDataCountry(),
-            category = request.category?.toNewsDataCategory(),
-            language = request.language?.toNewsDataLanguage(),
-            page = page,
-            query = request.query,
-            size = 10,
-        )
+        val response = providerCall(id) {
+            newsDataApi.searchNews(
+                country = request.country?.toNewsDataCountry(),
+                category = request.category?.toNewsDataCategory(),
+                language = request.language?.toNewsDataLanguage(),
+                page = page,
+                query = request.query,
+                size = 10,
+            )
+        }
 
         if (response.status != "success") {
-            throw ProviderException(
-                providerId = ProviderId.NEWS_DATA,
-                message = "NewsAPI return status: ${response.status}"
-            )
+            throw NewsException.InvalidResponse(id)
         }
 
         val nextToken = response.nextPage

@@ -76,9 +76,9 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun observeFeedProviderPreference(): Flow<ProviderId> =
         dataStore.data
             .map { prefs ->
-                val value = prefs[PreferencesKeys.FEED_PROVIDER] ?: ProviderId.NEWS_DATA.value
-                val feedProvider = ProviderId.fromValue(value)
-                feedProvider.takeIf { it in newsProviderRegistry.availableIds }
+                prefs[PreferencesKeys.FEED_PROVIDER]
+                    ?.let(::providerIdOrNull)
+                    ?.takeIf { it in newsProviderRegistry.availableIds }
                     ?: ProviderId.NEWS_DATA
             }
             .distinctUntilChanged()

@@ -30,6 +30,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
+import com.ians.observer.presentation.mapper.toErrorMessageRes
 
 /**
  * Renders a paged list of articles together with every load state it can be in: skeletons for the
@@ -67,7 +68,7 @@ fun PagedArticleList(
             modifier = modifier,
             contentPadding = contentPadding,
             title = stringResource(R.string.list_error_title),
-            message = state.throwable.message ?: stringResource(R.string.list_error_message),
+            message = stringResource(state.throwable.toErrorMessageRes()),
             isError = true,
             onRetry = { articles.retry() }
         )

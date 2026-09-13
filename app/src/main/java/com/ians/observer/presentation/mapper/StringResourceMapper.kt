@@ -2,6 +2,7 @@ package com.ians.observer.presentation.mapper
 
 import androidx.annotation.StringRes
 import com.ians.observer.R
+import com.ians.observer.domain.exception.NewsException
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.NewsCountry
 import com.ians.observer.domain.model.NewsLanguage
@@ -132,3 +133,12 @@ val ProviderId.websiteUrlRes: Int
         ProviderId.NEWS_DATA -> R.string.provider_news_data_url
         ProviderId.GDELT -> R.string.provider_gdelt_url
     }
+
+@StringRes
+fun Throwable.toErrorMessageRes(): Int = when (this) {
+    is NewsException.NoConnection -> R.string.error_no_connection
+    is NewsException.RateLimited -> R.string.error_rate_limited
+    is NewsException.ServerError -> R.string.error_server_unavailable
+    is NewsException.RequestRejected, is NewsException.InvalidResponse -> R.string.error_provider
+    else -> R.string.list_error_message
+}

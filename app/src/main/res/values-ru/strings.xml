@@ -36,6 +36,10 @@
     <string name="list_error_message">Проверьте подключение и попробуйте ещё раз.</string>
     <string name="list_append_error">Не удалось загрузить ещё статьи</string>
     <string name="list_refresh_failed">Не удалось обновить</string>
+    <string name="error_no_connection">Нет подключения к интернету. Проверьте сеть и попробуйте ещё раз.</string>
+    <string name="error_rate_limited">Слишком много запросов к источнику. Попробуйте чуть позже.</string>
+    <string name="error_server_unavailable">Источник новостей временно недоступен. Попробуйте позже.</string>
+    <string name="error_provider">Источник новостей не смог обработать запрос.</string>
     <string name="action_retry">Повторить</string>
     <string name="cd_loading_articles">Загрузка статей</string>
 

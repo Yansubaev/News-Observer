@@ -1,5 +1,6 @@
 package com.ians.observer.data.paging
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -54,6 +55,10 @@ class ArticleRemoteMediator(
     private val remoteKeyDao = database.remoteKeyDao()
     private val articleFeedCrossRefDao = database.articleFeedCrossRefDao()
     private val feedDao = database.feedDao()
+
+    companion object {
+        private const val TAG = "ArticleRemoteMediator"
+    }
 
     override suspend fun initialize(): InitializeAction {
         val currentTime = System.currentTimeMillis()
@@ -174,10 +179,9 @@ class ArticleRemoteMediator(
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
 
         } catch (e: CancellationException) {
-            println(e.localizedMessage)
             throw e
         } catch (e: Exception) {
-            println(e.localizedMessage)
+            Log.e(TAG, "Failed to load page for provider ${newsProvider.id.value}", e)
             MediatorResult.Error(e)
         }
     }

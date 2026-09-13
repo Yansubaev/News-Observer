@@ -36,6 +36,10 @@
     <string name="list_error_message">Check your connection and try again.</string>
     <string name="list_append_error">Couldn’t load more articles</string>
     <string name="list_refresh_failed">Couldn’t refresh</string>
+    <string name="error_no_connection">No internet connection. Check your network and try again.</string>
+    <string name="error_rate_limited">Too many requests to the news source. Try again in a moment.</string>
+    <string name="error_server_unavailable">The news source is temporarily unavailable. Try again later.</string>
+    <string name="error_provider">The news source couldn’t handle the request.</string>
     <string name="action_retry">Try again</string>
     <string name="cd_loading_articles">Loading articles</string>
 

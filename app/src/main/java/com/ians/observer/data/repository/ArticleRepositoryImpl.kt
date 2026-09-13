@@ -49,7 +49,7 @@ class ArticleRepositoryImpl @Inject constructor(
         syncInterval: Long,
     ): Flow<PagingData<Article>> = flow {
         val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
-            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${null}")
+            ?: error("No available provider among ${spec.providerIds}")
 
         val newsProvider = newsProviderRegistry.require(availableProviderId)
 
@@ -94,7 +94,7 @@ class ArticleRepositoryImpl @Inject constructor(
 
     override suspend fun fetchTopHeadlines(spec: FeedSpec): List<Article> {
         val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
-            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${spec.providerIds}")
+            ?: error("No available provider among ${spec.providerIds}")
 
         val newsProvider = newsProviderRegistry.require(availableProviderId)
 
@@ -112,7 +112,7 @@ class ArticleRepositoryImpl @Inject constructor(
 
     override fun searchNewsPaging(spec: SearchSpec): Flow<PagingData<Article>> {
         val availableProviderId = spec.providerIds.find { it in newsProviderRegistry.availableIds }
-            ?: throw IllegalArgumentException("No available provider for required found. ProviderId=${null}")
+            ?: error("No available provider among ${spec.providerIds}")
 
         val newsProvider = newsProviderRegistry.require(availableProviderId)
 

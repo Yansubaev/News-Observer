@@ -15,31 +15,27 @@ class GetDailyNewsArticleUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
 
-    suspend operator fun invoke(): Article? =
-        try {
-            val country = settingsRepository.observeCountryPreference().firstOrNull()
-                ?: NewsCountry.US
+    suspend operator fun invoke(): Article? {
+        val country = settingsRepository.observeCountryPreference().firstOrNull()
+            ?: NewsCountry.US
 
-            val lang = settingsRepository.observeLanguagePreference().firstOrNull()
-                ?: NewsLanguage.EN
+        val lang = settingsRepository.observeLanguagePreference().firstOrNull()
+            ?: NewsLanguage.EN
 
-            val feedProviderId = settingsRepository.observeFeedProviderPreference().firstOrNull()
-                ?: return null
+        val feedProviderId = settingsRepository.observeFeedProviderPreference().firstOrNull()
+            ?: return null
 
-            val spec = FeedSpec(
-                country = country,
-                language = lang,
-                category = Category.GENERAL,
-                providerIds = listOf(feedProviderId)
-            )
-            val articles = articleRepository.fetchTopHeadlines(spec)
-            val randomArticle = articles.randomOrNull() ?: return null
+        val spec = FeedSpec(
+            country = country,
+            language = lang,
+            category = Category.GENERAL,
+            providerIds = listOf(feedProviderId)
+        )
+        val articles = articleRepository.fetchTopHeadlines(spec)
+        val randomArticle = articles.randomOrNull() ?: return null
 
-            articleRepository.replaceNotificationArticle(randomArticle)
+        articleRepository.replaceNotificationArticle(randomArticle)
 
-            randomArticle
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-
+        return randomArticle
+    }
 }

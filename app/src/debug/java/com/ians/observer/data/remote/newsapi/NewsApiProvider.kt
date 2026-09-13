@@ -1,12 +1,13 @@
 package com.ians.observer.data.remote.newsapi
 
 import com.ians.observer.data.remote.provider.NewsProvider
-import com.ians.observer.data.remote.provider.exception.ProviderException
 import com.ians.observer.data.remote.provider.model.FeedRequest
 import com.ians.observer.data.remote.provider.model.PageToken
 import com.ians.observer.data.remote.provider.model.ProviderCapabilities
 import com.ians.observer.data.remote.provider.model.ProviderPage
 import com.ians.observer.data.remote.provider.model.SearchRequest
+import com.ians.observer.data.remote.provider.providerCall
+import com.ians.observer.domain.exception.NewsException
 import com.ians.observer.domain.model.Category
 import com.ians.observer.domain.model.ProviderId
 import javax.inject.Inject
@@ -45,18 +46,17 @@ class NewsApiProvider @Inject constructor(
     ): ProviderPage {
         val page = pageToken?.value?.toIntOrNull() ?: 1
 
-        val response = newsApiApi.getHeadlines(
-            country = request.country?.toNewsApiCountry() ?: "us",
-            category = request.category?.toNewsApiCategory(),
-            page = page,
-            pageSize = NETWORK_PAGE_SIZE
-        )
+        val response = providerCall(id) {
+            newsApiApi.getHeadlines(
+                country = request.country?.toNewsApiCountry() ?: "us",
+                category = request.category?.toNewsApiCategory(),
+                page = page,
+                pageSize = NETWORK_PAGE_SIZE
+            )
+        }
 
         if (response.status != "ok") {
-            throw ProviderException(
-                providerId = id,
-                message = "NewsAPI return status: ${response.status}"
-            )
+            throw NewsException.InvalidResponse(id)
         }
 
         val loadedThrough = page * NETWORK_PAGE_SIZE
@@ -77,18 +77,17 @@ class NewsApiProvider @Inject constructor(
     ): ProviderPage {
         val page = pageToken?.value?.toIntOrNull() ?: 1
 
-        val response = newsApiApi.searchNews(
-            query = request.query,
-            page = pageToken?.value?.toIntOrNull() ?: 1,
-            pageSize = NETWORK_PAGE_SIZE,
-            language = request.language?.toNewsApiLanguage()
-        )
+        val response = providerCall(id) {
+            newsApiApi.searchNews(
+                query = request.query,
+                page = pageToken?.value?.toIntOrNull() ?: 1,
+                pageSize = NETWORK_PAGE_SIZE,
+                language = request.language?.toNewsApiLanguage()
+            )
+        }
 
         if (response.status != "ok") {
-            throw ProviderException(
-                providerId = id,
-                message = "NewsAPI return status: ${response.status}"
-            )
+            throw NewsException.InvalidResponse(id)
         }
 
         val loadedThrough = page * NETWORK_PAGE_SIZE

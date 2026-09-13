@@ -7,17 +7,13 @@ import javax.inject.Inject
 class ClearArticleCacheUseCase @Inject constructor(
     private val articleRepository: ArticleRepository
 ) {
-    suspend operator fun invoke(
-        onSuccess: suspend () -> Unit,
-        onFailed: suspend (Exception) -> Unit,
-    ) {
+    suspend operator fun invoke(): Boolean =
         try {
             articleRepository.clearCachedArticles()
-            onSuccess()
+            true
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            onFailed(e)
+            false
         }
-    }
 }
