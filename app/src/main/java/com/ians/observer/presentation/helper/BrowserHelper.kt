@@ -71,6 +71,26 @@ fun openArticleUrl(
     }
 }
 
+fun openEmailComposer(
+    email: String,
+    subject: String,
+    context: Context,
+    body: String? = null,
+): Boolean {
+    val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).apply {
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        body?.let { putExtra(Intent.EXTRA_TEXT, it) }
+    }
+
+    return try {
+        context.startActivity(intent)
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    }
+}
+
 fun openUriInBrowser(
     uri: Uri,
     context: Context,

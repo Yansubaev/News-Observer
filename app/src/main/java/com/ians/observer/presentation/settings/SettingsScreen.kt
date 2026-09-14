@@ -6,10 +6,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -36,8 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -54,10 +48,7 @@ import com.ians.observer.domain.model.NewsLanguage
 import com.ians.observer.domain.model.ProviderId
 import com.ians.observer.presentation.helper.canPostNotifications
 import com.ians.observer.presentation.helper.openNotificationSettings
-import com.ians.observer.presentation.helper.openUriInBrowser
-import com.ians.observer.presentation.helper.parseArticleUri
 import com.ians.observer.presentation.mapper.titleRes
-import com.ians.observer.presentation.mapper.websiteUrlRes
 import com.ians.observer.presentation.navigation.SettingsScreen
 
 @Composable
@@ -70,10 +61,6 @@ fun MainSettingsScreen(
     val activity = LocalActivity.current
 
     var showClearCacheDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var showAboutDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -192,9 +179,6 @@ fun MainSettingsScreen(
             },
             onNotificationsToggled = ::onNotificationToggled,
             onTestNotificationClick = viewModel::sendTestNotification,
-            onAboutClicked = {
-                showAboutDialog = true
-            }
         )
 
 
@@ -215,25 +199,6 @@ fun MainSettingsScreen(
             onConfirm = {
                 showClearCacheDialog = false
                 viewModel.clearCachedArticles()
-            }
-        )
-    }
-
-    if (showAboutDialog) {
-        val providerSiteUrls = viewModel.availableProviderIds.associateWith { providerId ->
-            stringResource(providerId.websiteUrlRes)
-        }
-
-        AboutAlertDialog(
-            versionName = BuildConfig.VERSION_NAME,
-            providerIds = viewModel.availableProviderIds,
-            onOpenProviderSite = { providerId ->
-                providerSiteUrls[providerId]?.let(::parseArticleUri)?.let { uri ->
-                    openUriInBrowser(uri, context)
-                }
-            },
-            onDismiss = {
-                showAboutDialog = false
             }
         )
     }
@@ -330,7 +295,6 @@ private fun MainSettingsScreenUI(
     onClearCacheClick: () -> Unit = {},
     onNotificationsToggled: (Boolean) -> Unit = {},
     onTestNotificationClick: () -> Unit = {},
-    onAboutClicked: () -> Unit = {}
 ) {
     val mod = Modifier
         .fillMaxWidth()
@@ -402,11 +366,11 @@ private fun MainSettingsScreenUI(
             )
         )
         add(
-            SettingsItem.Info(
+            SettingsItem.Navigation(
                 title = R.string.settings_about,
                 iconRes = R.drawable.info,
-                value = "",
-                onClick = onAboutClicked,
+                route = SettingsScreen.About.route,
+                onNavigate = onNavigate,
                 iconContentDescription = R.string.cd_settings_about
             )
         )
@@ -529,73 +493,6 @@ fun ClearCacheDialog(
             }
         }
     )
-}
-
-@Composable
-fun AboutAlertDialog(
-    versionName: String,
-    providerIds: Set<ProviderId>,
-    onOpenProviderSite: (ProviderId) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.app_name))
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(stringResource(R.string.about_app_description))
-
-                Text(
-                    text = stringResource(
-                        R.string.about_version,
-                        versionName
-                    ),
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                HorizontalDivider()
-
-                Text(
-                    text = stringResource(R.string.about_news_sources),
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Text(
-                    text = providerIds
-                        .map { providerId -> stringResource(providerId.titleRes) }
-                        .joinToString(separator = " • ")
-                )
-
-                Text(
-                    text = stringResource(R.string.about_news_attribution),
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                if (ProviderId.GDELT in providerIds) {
-                    Text(
-                        modifier = Modifier.clickable(
-                            role = Role.Button,
-                            onClick = { onOpenProviderSite(ProviderId.GDELT) }
-                        ),
-                        text = stringResource(R.string.about_gdelt_attribution),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        textDecoration = TextDecoration.Underline
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.about_close))
-            }
-        }
-    )
-
 }
 
 @Preview(showBackground = true, showSystemUi = true)

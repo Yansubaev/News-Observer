@@ -29,4 +29,7 @@ interface RemoteKeyDao {
 
     @Query("DELETE FROM remote_keys")
     suspend fun deleteAllRemoteKeys()
+
+    @Query("DELETE FROM remote_keys WHERE updated_at < :threshold")
+    suspend fun deleteUpdatedBefore(threshold: Long)
 }

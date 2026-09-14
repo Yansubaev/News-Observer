@@ -65,8 +65,10 @@ import com.ians.observer.presentation.components.AnimatedFavoriteButton
 import com.ians.observer.presentation.helper.OpenArticleResult
 import com.ians.observer.presentation.helper.extractArticleHost
 import com.ians.observer.presentation.helper.openArticleUrl
+import com.ians.observer.presentation.helper.openEmailComposer
 import com.ians.observer.presentation.helper.openUriInBrowser
 import com.ians.observer.presentation.helper.parseArticleUri
+import com.ians.observer.presentation.helper.shortenSnippet
 import com.ians.observer.presentation.mapper.attributionRes
 import com.ians.observer.presentation.mapper.titleRes
 import com.ians.observer.presentation.mapper.websiteUrlRes
@@ -132,6 +134,21 @@ fun ArticleDetailsSheet(
                     val shareContextTitle =
                         stringResource(R.string.article_details_share_chooser_title)
                     val providerSite = stringResource(article.providerId.websiteUrlRes)
+                    val developerEmail = stringResource(R.string.developer_email)
+                    val reportSubject = stringResource(
+                        R.string.article_details_report_email_subject,
+                        article.publisher.name
+                    )
+                    val reportBody = stringResource(
+                        R.string.article_details_report_email_body,
+                        article.originalUrl,
+                        article.publisher.name,
+                        article.title
+                    )
+                    val emailAppNotFound = stringResource(
+                        R.string.article_details_email_app_not_found,
+                        developerEmail
+                    )
                     ArticleDetailsScreen(
                         article = article,
                         onClose = closeFromButton,
@@ -171,6 +188,17 @@ fun ArticleDetailsSheet(
                                         }
                                     }
                                 }
+                            }
+                        },
+                        onReportProblem = {
+                            val opened = openEmailComposer(
+                                email = developerEmail,
+                                subject = reportSubject,
+                                context = context,
+                                body = reportBody,
+                            )
+                            if (!opened) {
+                                scope.launch { snackbarHostState.showSnackbar(emailAppNotFound) }
                             }
                         },
                         onOpenProviderSite = {
@@ -357,6 +385,7 @@ fun ArticleDetailsScreen(
     onReadArticle: () -> Unit,
     onOpenPublisher: () -> Unit,
     onOpenProviderSite: () -> Unit,
+    onReportProblem: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -491,7 +520,7 @@ fun ArticleDetailsScreen(
 
             article.description?.let { description ->
                 Text(
-                    text = description,
+                    text = remember(description) { shortenSnippet(description) },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -607,6 +636,21 @@ fun ArticleDetailsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             )
+
+            Spacer(Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.article_details_independent_note),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextButton(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = onReportProblem,
+            ) {
+                Text(stringResource(R.string.article_details_report_problem))
+            }
         }
     }
 }
@@ -640,6 +684,7 @@ fun ArticleDetailsUiPreview() {
         onReadArticle = {},
         onOpenPublisher = {},
         onOpenProviderSite = {},
+        onReportProblem = {},
     )
 }
 

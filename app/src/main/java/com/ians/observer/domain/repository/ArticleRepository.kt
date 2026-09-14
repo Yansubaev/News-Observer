@@ -31,5 +31,8 @@ interface ArticleRepository {
 
     suspend fun clearCachedArticles()
 
+    /** Drops cached feeds last loaded before [threshold]. Saved articles are kept. */
+    suspend fun deleteCachedArticlesOlderThan(threshold: Long)
+
     suspend fun replaceNotificationArticle(article: Article)
 }

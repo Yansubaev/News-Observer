@@ -195,6 +195,7 @@ fun MainScreen(
                             SettingsScreen.SearchProviders.route -> stringResource(SettingsScreen.SearchProviders.name)
                             SettingsScreen.Region.route -> stringResource(SettingsScreen.Region.name)
                             SettingsScreen.Language.route -> stringResource(SettingsScreen.Language.name)
+                            SettingsScreen.About.route -> stringResource(SettingsScreen.About.name)
                             else -> ""
                         }
 

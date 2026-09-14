@@ -25,7 +25,6 @@
     <string name="nav_saved">Saved</string>
     <string name="nav_profile">Profile</string>
     <string name="search_news">Search news…</string>
-    <string name="recents">Recents</string>
     <string name="search_prompt_title">Search for news</string>
     <string name="search_prompt_message">Type a query to find articles across your sources.</string>
     <string name="search_no_results">Nothing found for “%1$s”</string>
@@ -51,7 +50,11 @@
     <string name="article_details_read_on_publisher_site">Read on %1$s</string>
     <string name="article_details_open_original">Open original</string>
     <string name="article_details_opens_on_publisher_site">Opens on the original publisher’s website</string>
-    <string name="article_details_report_problem">Report a problem</string>
+    <string name="article_details_report_problem">Report a problem with this article</string>
+    <string name="article_details_independent_note">News Observer is an independent aggregator and is not affiliated with this publisher.</string>
+    <string name="article_details_report_email_subject">Content report: %1$s</string>
+    <string name="article_details_report_email_body">Article: %1$s\nPublisher: %2$s\nHeadline: %3$s\n\nDescribe the problem:\n</string>
+    <string name="article_details_email_app_not_found">No email app found. Write to %1$s</string>
     <string name="article_details_original_link_unavailable">The original article link is unavailable</string>
     <string name="article_details_invalid_url">The article link is invalid</string>
     <string name="article_details_browser_not_found">No browser app was found</string>
@@ -100,15 +103,29 @@
     <string name="settings_cache_clear_failed">Couldn’t clear cache</string>
 
     <!-- About -->
+    <string name="about_title">About &amp; sources</string>
     <string name="about_app_description">Follow the latest news, search for articles, and save the ones you want to keep from multiple sources.</string>
     <string name="about_version">Version %1$s</string>
+    <string name="about_independence_title">Independent news aggregator</string>
+    <string name="about_independence_text">News Observer is an independent, non-commercial app. It is not affiliated with, endorsed by, or sponsored by any of the publishers or news services shown in it. The app does not write, edit, or verify the articles it lists.</string>
     <string name="about_news_sources">News sources</string>
-    <string name="about_news_attribution">News content and metadata are provided by third-party services.</string>
-    <string name="about_gdelt_attribution">Article metadata from The GDELT Project, used under its terms of use.</string>
-    <string name="about_source_code">Source code</string>
+    <string name="about_news_attribution">Headlines, short descriptions, and links are provided by the services below. Articles and all related rights belong to their original publishers. The app shows no full article text and always links to the original publication.</string>
+    <string name="about_provider_news_data_description">Latest headlines and search: titles, short descriptions, publisher names, authors, publication dates, and links.</string>
+    <string name="about_provider_gdelt_description">Event and news metadata provided by the GDELT Project — gdeltproject.org. Titles, source domains, publication dates, and links.</string>
+    <string name="about_provider_news_api_description">Headlines and search. Used in development builds only.</string>
+    <string name="about_provider_website">Website</string>
+    <string name="about_provider_terms">Terms of use</string>
+    <string name="about_terms_last_reviewed">Source terms last reviewed: %1$s</string>
+    <string name="about_terms_last_reviewed_date">September 2026</string>
+    <string name="about_legal_title">Legal &amp; contact</string>
     <string name="about_privacy_policy">Privacy policy</string>
-    <string name="about_open_source_licenses">Open-source licenses</string>
-    <string name="about_close">Close</string>
+    <string name="about_terms_of_use">Terms of use</string>
+    <string name="about_contact_page">Contact &amp; content reports</string>
+    <string name="about_contact_email">Email the developer</string>
+    <string name="about_contact_hint">Found a problem with an article or believe content infringes your rights? Write to the developer — every report is reviewed.</string>
+    <string name="about_email_subject">News Observer feedback</string>
+    <string name="about_source_code">Source code</string>
+    <string name="about_developer">Developed by %1$s</string>
 
     <string name="cd_settings_sources">News sources icon</string>
     <string name="cd_settings_language">Article language icon</string>
@@ -125,6 +142,17 @@
     <string name="provider_news_api_url" translatable="false">https://newsapi.org/</string>
     <string name="provider_news_data_url" translatable="false">https://newsdata.io/</string>
     <string name="provider_gdelt_url" translatable="false">https://www.gdeltproject.org/</string>
+    <string name="provider_news_api_terms_url" translatable="false">https://newsapi.org/terms</string>
+    <string name="provider_news_data_terms_url" translatable="false">https://newsdata.io/terms-and-conditions</string>
+    <string name="provider_gdelt_terms_url" translatable="false">https://www.gdeltproject.org/about.html#termsofuse</string>
+
+    <!-- Developer and legal links -->
+    <string name="developer_name" translatable="false">Denis Ians</string>
+    <string name="developer_email" translatable="false">iansubd@gmail.com</string>
+    <string name="url_contact" translatable="false">https://yansubaev.github.io/News-Observer/</string>
+    <string name="url_privacy_policy" translatable="false">https://yansubaev.github.io/News-Observer/#privacy-policy</string>
+    <string name="url_terms_of_use" translatable="false">https://yansubaev.github.io/News-Observer/#terms-of-use</string>
+    <string name="url_source_code" translatable="false">https://github.com/Yansubaev/News-Observer</string>
 
     <!-- News languages -->
     <string name="news_language_ar">Arabic</string>

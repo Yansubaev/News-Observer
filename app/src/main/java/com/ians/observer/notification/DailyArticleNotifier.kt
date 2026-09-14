@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.ians.observer.MainActivity
 import com.ians.observer.R
 import com.ians.observer.domain.model.Article
+import com.ians.observer.presentation.helper.shortenSnippet
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,11 +70,13 @@ class DailyArticleNotifier @Inject constructor(
 
         val text = article.description
             ?.takeIf(String::isNotBlank)
+            ?.let(::shortenSnippet)
             ?: context.getString(R.string.daily_article_notification_fallback_text)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.baseline_newspaper_56)
             .setContentTitle(article.title)
+            .setSubText(article.publisher.name)
             .setContentText(text)
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(text)

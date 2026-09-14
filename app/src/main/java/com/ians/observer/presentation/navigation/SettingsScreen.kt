@@ -8,6 +8,7 @@ sealed class SettingsScreen(val route: String, val name: Int) {
     data object SearchProviders : SettingsScreen(ROUTE_SEARCH_PROVIDERS, R.string.settings_search_providers)
     data object Language : SettingsScreen(ROUTE_LANG, R.string.settings_language)
     data object Region : SettingsScreen(ROUTE_REGION, R.string.settings_region)
+    data object About : SettingsScreen(ROUTE_ABOUT, R.string.about_title)
 
     companion object {
         const val ROUTE_MAIN = "settings/main"
@@ -15,13 +16,15 @@ sealed class SettingsScreen(val route: String, val name: Int) {
         const val ROUTE_SEARCH_PROVIDERS = "settings/search_providers"
         const val ROUTE_LANG = "settings/lang"
         const val ROUTE_REGION = "settings/region"
+        const val ROUTE_ABOUT = "settings/about"
 
         val routes: List<String> = listOf(
             ROUTE_MAIN,
             ROUTE_FEED_PROVIDERS,
             ROUTE_SEARCH_PROVIDERS,
             ROUTE_LANG,
-            ROUTE_REGION
+            ROUTE_REGION,
+            ROUTE_ABOUT
         )
     }
 }

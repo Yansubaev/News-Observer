@@ -134,6 +134,22 @@ val ProviderId.websiteUrlRes: Int
         ProviderId.GDELT -> R.string.provider_gdelt_url
     }
 
+@get:StringRes
+val ProviderId.termsUrlRes: Int
+    get() = when (this) {
+        ProviderId.NEWS_API -> R.string.provider_news_api_terms_url
+        ProviderId.NEWS_DATA -> R.string.provider_news_data_terms_url
+        ProviderId.GDELT -> R.string.provider_gdelt_terms_url
+    }
+
+@get:StringRes
+val ProviderId.aboutDescriptionRes: Int
+    get() = when (this) {
+        ProviderId.NEWS_API -> R.string.about_provider_news_api_description
+        ProviderId.NEWS_DATA -> R.string.about_provider_news_data_description
+        ProviderId.GDELT -> R.string.about_provider_gdelt_description
+    }
+
 @StringRes
 fun Throwable.toErrorMessageRes(): Int = when (this) {
     is NewsException.NoConnection -> R.string.error_no_connection

@@ -27,6 +27,7 @@ import com.ians.observer.domain.model.Article
 import com.ians.observer.presentation.feed.FeedScreen
 import com.ians.observer.presentation.saved.SavedScreen
 import com.ians.observer.presentation.search.SearchScreen
+import com.ians.observer.presentation.settings.AboutScreen
 import com.ians.observer.presentation.settings.FeedProviderSettingsScreen
 import com.ians.observer.presentation.settings.LanguageSettingsScreen
 import com.ians.observer.presentation.settings.MainSettingsScreen
@@ -98,6 +99,10 @@ fun AppNavHost(
 
         composable(SettingsScreen.Region.route) {
             RegionSettingsScreen()
+        }
+
+        composable(SettingsScreen.About.route) {
+            AboutScreen()
         }
     }
 }

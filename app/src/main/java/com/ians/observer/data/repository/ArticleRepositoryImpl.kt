@@ -213,6 +213,14 @@ class ArticleRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteCachedArticlesOlderThan(threshold: Long) {
+        database.withTransaction {
+            database.feedDao().deleteFeedsUpdatedBefore(threshold)
+            database.remoteKeyDao().deleteUpdatedBefore(threshold)
+            database.articleDao().deleteOrphanedArticles()
+        }
+    }
+
     override suspend fun replaceNotificationArticle(article: Article) {
         database.replaceNotificationArticle(article.toEntity())
     }

@@ -25,7 +25,6 @@
     <string name="nav_saved">Сохранённое</string>
     <string name="nav_profile">Профиль</string>
     <string name="search_news">Поиск новостей…</string>
-    <string name="recents">Недавние</string>
     <string name="search_prompt_title">Поиск новостей</string>
     <string name="search_prompt_message">Введите запрос, чтобы найти статьи по всем источникам.</string>
     <string name="search_no_results">По запросу «%1$s» ничего не найдено</string>
@@ -51,7 +50,11 @@
     <string name="article_details_read_on_publisher_site">Читать на сайте %1$s</string>
     <string name="article_details_open_original">Открыть оригинал</string>
     <string name="article_details_opens_on_publisher_site">Откроется на сайте оригинального издателя</string>
-    <string name="article_details_report_problem">Сообщить о проблеме</string>
+    <string name="article_details_report_problem">Сообщить о проблеме со статьёй</string>
+    <string name="article_details_independent_note">News Observer — независимый агрегатор и не связан с этим издателем.</string>
+    <string name="article_details_report_email_subject">Жалоба на материал: %1$s</string>
+    <string name="article_details_report_email_body">Статья: %1$s\nИздатель: %2$s\nЗаголовок: %3$s\n\nОпишите проблему:\n</string>
+    <string name="article_details_email_app_not_found">Почтовое приложение не найдено. Напишите на %1$s</string>
     <string name="article_details_original_link_unavailable">Ссылка на оригинал статьи недоступна</string>
     <string name="article_details_invalid_url">Некорректная ссылка на статью</string>
     <string name="article_details_browser_not_found">Приложение-браузер не найдено</string>
@@ -102,15 +105,29 @@
     <string name="settings_cache_clear_failed">Не удалось очистить кэш</string>
 
     <!-- О приложении -->
+    <string name="about_title">О приложении и источники</string>
     <string name="about_app_description">Следите за последними новостями, ищите статьи и сохраняйте нужные из разных источников.</string>
     <string name="about_version">Версия %1$s</string>
+    <string name="about_independence_title">Независимый агрегатор новостей</string>
+    <string name="about_independence_text">News Observer — независимое некоммерческое приложение. Оно не связано с издателями и новостными сервисами, материалы которых показывает, и не одобрено и не спонсируется ими. Приложение не пишет, не редактирует и не проверяет статьи.</string>
     <string name="about_news_sources">Источники новостей</string>
-    <string name="about_news_attribution">Новостные материалы и метаданные предоставляются сторонними сервисами.</string>
-    <string name="about_gdelt_attribution">Метаданные статей предоставлены проектом GDELT и используются в соответствии с его условиями использования.</string>
-    <string name="about_source_code">Исходный код</string>
+    <string name="about_news_attribution">Заголовки, краткие описания и ссылки предоставляются сервисами ниже. Статьи и все права на них принадлежат оригинальным издателям. Приложение не показывает полный текст статей и всегда ведёт на оригинальную публикацию.</string>
+    <string name="about_provider_news_data_description">Главные новости и поиск: заголовки, краткие описания, названия издателей, авторы, даты публикации и ссылки.</string>
+    <string name="about_provider_gdelt_description">Метаданные событий и новостей предоставлены проектом GDELT — gdeltproject.org. Заголовки, домены источников, даты публикации и ссылки.</string>
+    <string name="about_provider_news_api_description">Главные новости и поиск. Используется только в сборках для разработки.</string>
+    <string name="about_provider_website">Сайт</string>
+    <string name="about_provider_terms">Условия использования</string>
+    <string name="about_terms_last_reviewed">Условия источников проверены: %1$s</string>
+    <string name="about_terms_last_reviewed_date">сентябрь 2026</string>
+    <string name="about_legal_title">Правовая информация и контакты</string>
     <string name="about_privacy_policy">Политика конфиденциальности</string>
-    <string name="about_open_source_licenses">Лицензии открытого ПО</string>
-    <string name="about_close">Закрыть</string>
+    <string name="about_terms_of_use">Условия использования</string>
+    <string name="about_contact_page">Контакты и жалобы на материалы</string>
+    <string name="about_contact_email">Написать разработчику</string>
+    <string name="about_contact_hint">Нашли проблему со статьёй или считаете, что материал нарушает ваши права? Напишите разработчику — каждое обращение рассматривается.</string>
+    <string name="about_email_subject">Отзыв о News Observer</string>
+    <string name="about_source_code">Исходный код</string>
+    <string name="about_developer">Разработчик: %1$s</string>
 
     <string name="cd_settings_sources">Иконка источников новостей</string>
     <string name="cd_settings_language">Иконка языка статей</string>

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -124,8 +123,8 @@ fun SearchScreenUI(
     val searchBarMaxHeight = SearchBarDefaults.InputFieldHeight +
         DividerDefaults.Thickness +
         SearchHistoryVerticalPadding * 2 +
-        SearchHistoryHeaderHeight +
-        (SearchHistoryItemHeight + SearchHistoryItemSpacing) * searchHistory.size
+        SearchHistoryItemHeight * searchHistory.size +
+        SearchHistoryItemSpacing * (searchHistory.size - 1).coerceAtLeast(0)
 
     Column(
         modifier = Modifier
@@ -191,12 +190,6 @@ fun SearchScreenUI(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(SearchHistoryItemSpacing)
             ) {
-                Text(
-                    stringResource(R.string.recents),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.height(SearchHistoryHeaderHeight)
-                )
-
                 for (entry in searchHistory) {
                     RecentQuery(
                         text = entry,
@@ -349,13 +342,17 @@ fun RecentQuery(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Icon(
-            painterResource(R.drawable.watch),
-            contentDescription = "watch icon",
-            tint = MaterialTheme.colorScheme.secondary
-        )
-
-        Spacer(Modifier.size(12.dp))
+        // Same 48.dp slot as the clear button, so both icons sit symmetrically.
+        Box(
+            modifier = Modifier.size(SearchHistoryIconSlotSize),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painterResource(R.drawable.watch),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
 
         Text(
             text,
@@ -367,20 +364,20 @@ fun RecentQuery(
 
         IconButton(
             onClick = onClearClick,
-            modifier = Modifier.size(SearchHistoryItemHeight),
+            modifier = Modifier.size(SearchHistoryIconSlotSize),
         ) {
             Icon(
                 painter = painterResource(R.drawable.baseline_close_24),
                 contentDescription = "close icon",
-                tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.size(16.dp)
+                tint = MaterialTheme.colorScheme.secondary
             )
         }
     }
 }
 
-private val SearchHistoryHeaderHeight = 32.dp
-private val SearchHistoryHorizontalPadding = 12.dp
+// With the 48.dp icon slots this puts icons and text on the search field's keylines.
+private val SearchHistoryHorizontalPadding = 4.dp
+private val SearchHistoryIconSlotSize = 48.dp
 private val SearchHistoryItemHeight = 48.dp
 private val SearchHistoryItemSpacing = 16.dp
 private val SearchHistoryVerticalPadding = 12.dp

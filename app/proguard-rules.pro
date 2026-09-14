@@ -1,21 +1,12 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Project-specific R8 rules. Room, Hilt, Retrofit, OkHttp, WorkManager and Gson
+# ship their own consumer rules; only reflection done by this app is listed here.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Gson maps API responses onto DTO fields by name via reflection. Keep the whole
+# DTO packages: a field without @SerializedName would otherwise be renamed and
+# silently stay null.
+-keep class com.ians.observer.data.remote.**.dto.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Readable stack traces in Play Console. Upload build/outputs/mapping/release/mapping.txt
+# together with each AAB to deobfuscate them.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

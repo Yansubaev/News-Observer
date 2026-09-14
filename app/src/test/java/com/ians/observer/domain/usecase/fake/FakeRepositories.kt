@@ -45,6 +45,8 @@ internal class FakeArticleRepository : ArticleRepository {
 
     var clearCacheCallCount = 0
     var clearCacheException: Exception? = null
+    val deleteOlderThanThresholds = mutableListOf<Long>()
+    var deleteOlderThanException: Exception? = null
     var replaceNotificationArticleException: Throwable? = null
 
     override fun observeTopHeadlinesPaging(
@@ -93,6 +95,11 @@ internal class FakeArticleRepository : ArticleRepository {
     override suspend fun clearCachedArticles() {
         clearCacheCallCount += 1
         clearCacheException?.let { throw it }
+    }
+
+    override suspend fun deleteCachedArticlesOlderThan(threshold: Long) {
+        deleteOlderThanThresholds += threshold
+        deleteOlderThanException?.let { throw it }
     }
 
     override suspend fun replaceNotificationArticle(article: Article) {
