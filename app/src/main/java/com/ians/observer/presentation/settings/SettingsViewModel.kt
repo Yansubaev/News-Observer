@@ -26,7 +26,7 @@ class SettingsViewModel @Inject constructor(
     private val setNotificationEnabledUseCase: SetNotificationEnabledUseCase,
 
     private val settingsRepository: SettingsRepository,
-    private val newsProvidersRepository: NewsProvidersRepository,
+    newsProvidersRepository: NewsProvidersRepository,
 ) : ViewModel() {
 
     val feedProviderIds = newsProvidersRepository.getTopHeadlinesCapableProviderIds()
@@ -48,13 +48,6 @@ class SettingsViewModel @Inject constructor(
         )
 
     val selectedFeedProvider = settingsRepository.observeFeedProviderPreference()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ProviderId.NEWS_DATA
-        )
-
-    val selectedSearchProvider = settingsRepository.observeSearchProviderPreference()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -104,10 +97,6 @@ class SettingsViewModel @Inject constructor(
 
     fun selectFeedProvider(providerId: ProviderId) = viewModelScope.launch {
         settingsRepository.setFeedProviderPreference(providerId)
-    }
-
-    fun selectSearchProvider(providerId: ProviderId) = viewModelScope.launch {
-        settingsRepository.setSearchProviderPreference(providerId)
     }
 
     fun setSearchProviderEnabled(providerId: ProviderId, enabled: Boolean) = viewModelScope.launch {
