@@ -54,7 +54,7 @@ import com.ians.observer.presentation.navigation.SettingsScreen
 @Composable
 fun MainSettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: MainSettingsViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -101,9 +101,9 @@ fun MainSettingsScreen(
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
                 val message = when (event) {
-                    SettingsViewModel.SettingsEvent.CacheCleared -> cacheClearedMessage
-                    SettingsViewModel.SettingsEvent.CacheClearFailed -> cachedClearFailedMessage
-                    SettingsViewModel.SettingsEvent.TestNotificationScheduled ->
+                    MainSettingsViewModel.SettingsEvent.CacheCleared -> cacheClearedMessage
+                    MainSettingsViewModel.SettingsEvent.CacheClearFailed -> cachedClearFailedMessage
+                    MainSettingsViewModel.SettingsEvent.TestNotificationScheduled ->
                         testNotificationScheduledMessage
                 }
 

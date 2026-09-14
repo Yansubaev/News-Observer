@@ -118,7 +118,7 @@ private fun AnimatedVisibilityScope.SettingsReveal(
     val currentEntry by navController.currentBackStackEntryAsState()
     val leavingSettings = currentEntry?.destination?.route !in SettingsScreen.routes
 
-    val progress by transition.animateFloat(
+    val progress = transition.animateFloat(
         transitionSpec = {
             if (targetState == EnterExitState.Visible) {
                 tween(SettingsRevealDurationMillis, easing = LinearOutSlowInEasing)
@@ -140,7 +140,7 @@ private fun AnimatedVisibilityScope.SettingsReveal(
     }
 
     CircularReveal(
-        progress = progress,
+        progressProvider = { progress.value },
         originInRoot = originInRoot,
         content = content
     )

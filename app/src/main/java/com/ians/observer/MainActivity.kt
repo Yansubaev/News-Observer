@@ -10,7 +10,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -61,6 +65,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ians.observer.presentation.articlepreview.ArticleDetailsSheet
 import com.ians.observer.presentation.navigation.AppNavHost
 import com.ians.observer.presentation.navigation.Screen
+import com.ians.observer.presentation.navigation.SettingsRevealDurationMillis
 import com.ians.observer.presentation.navigation.SettingsScreen
 import com.ians.observer.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -243,30 +248,22 @@ fun MainScreen(
             },
             bottomBar = {
                 val hasBottomBar = bottomBarRoute != null
-
-                val bottomBarAlpha = animateFloatAsState(
-                    targetValue = if (hasBottomBar) 1f else 0f,
-                    animationSpec = tween(BarAnimationMillis),
-                    label = "bottom_bar_alpha"
-                )
-
                 val bottomBarColor = NavigationBarDefaults.containerColor
 
-                Column(
-                    modifier = Modifier.graphicsLayer {
-                        alpha = bottomBarAlpha.value
-                        compositingStrategy = CompositingStrategy.ModulateAlpha
-                    }
-                ) {
+                Column {
                     AnimatedVisibility(
                         visible = hasBottomBar,
-                        enter = expandVertically(
-                            expandFrom = Alignment.Bottom,
-                            animationSpec = tween(BarAnimationMillis)
+                        enter = slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(SettingsRevealDurationMillis)
+                        ) + fadeIn(
+                            animationSpec = tween(SettingsRevealDurationMillis)
                         ),
-                        exit = shrinkVertically(
-                            shrinkTowards = Alignment.Bottom,
-                            animationSpec = tween(BarAnimationMillis)
+                        exit = slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(SettingsRevealDurationMillis)
+                        ) + fadeOut(
+                            animationSpec = tween(SettingsRevealDurationMillis)
                         )
                     ) {
                         NavigationBar(
