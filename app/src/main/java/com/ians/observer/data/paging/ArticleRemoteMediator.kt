@@ -30,7 +30,7 @@ class ArticleRemoteMediatorFactory @Inject constructor(
         category: Category? = null,
         country: NewsCountry = NewsCountry.US,
         language: NewsLanguage = NewsLanguage.EN,
-        syncInterval: Long = 10 * 60 * 1000
+        syncInterval: Long = 30 * 60 * 1_000L
     ): ArticleRemoteMediator = ArticleRemoteMediator(
         newsProvider = newsProvider,
         database = database,
@@ -48,7 +48,7 @@ class ArticleRemoteMediator(
     private val country: NewsCountry = NewsCountry.US,
     private val language: NewsLanguage = NewsLanguage.EN,
     private val category: Category? = null,
-    private val syncInterval: Long = 10 * 60 * 1000, // 10 minutes
+    private val syncInterval: Long = 30 * 60 * 1_000L,
 ) : RemoteMediator<Int, FeedArticleProjection>() {
 
     private val articleDao = database.articleDao()

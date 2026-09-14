@@ -19,7 +19,7 @@ sealed class SettingsItem {
 
     data class Toggle(
         val title: Int,
-        val checked: Boolean,
+        val checked: Boolean?,
         val onCheckedChange: (Boolean) -> Unit,
         val iconRes: Int? = null,
         val iconContentDescription: Int? = null

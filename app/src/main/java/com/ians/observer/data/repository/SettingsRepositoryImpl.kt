@@ -36,7 +36,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSyncInterval(): Long {
-        return 10 * 60 * 1000
+        return 30 * 60 * 1_000L
     }
 
     override suspend fun setCountryPreference(country: NewsCountry) {

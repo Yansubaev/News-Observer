@@ -13,6 +13,7 @@ import com.ians.observer.domain.usecase.settings.SetNotificationEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -67,11 +68,13 @@ class SettingsViewModel @Inject constructor(
             initialValue = searchProviderIds
         )
 
+    // Null represents the brief period before DataStore emits the persisted preference.
     val notificationsEnabledState = settingsRepository.observeNotificationPreference()
+        .map<Boolean, Boolean?> { it }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false
+            initialValue = null
         )
 
     val notificationPermissionRequestedState =

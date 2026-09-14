@@ -18,6 +18,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -200,11 +201,13 @@ fun SettingsItemNavigationVariant(
 fun SettingsItemToggleVariant(
     item: SettingsItem.Toggle, modifier: Modifier = Modifier
 ) {
+    val checked = item.checked
+
     Row(
         modifier.toggleable(
-            value = item.checked,
+            value = checked ?: false,
             interactionSource = null,
-            enabled = true,
+            enabled = checked != null,
             role = Role.Switch,
             onValueChange = item.onCheckedChange,
         ),
@@ -220,7 +223,13 @@ fun SettingsItemToggleVariant(
             text = stringResource(item.title)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Switch(item.checked, onCheckedChange = null)
+        key(checked == null) {
+            Switch(
+                checked = checked ?: false,
+                onCheckedChange = null,
+                enabled = checked != null
+            )
+        }
         Spacer(modifier = Modifier.width(12.dp))
     }
 }

@@ -288,7 +288,7 @@ fun RegionSettingsScreen(
 
 @Composable
 private fun MainSettingsScreenUI(
-    notificationsEnabled: Boolean,
+    notificationsEnabled: Boolean?,
     onNavigate: (String) -> Unit = {},
     onClearCacheClick: () -> Unit = {},
     onNotificationsToggled: (Boolean) -> Unit = {},
@@ -350,7 +350,7 @@ private fun MainSettingsScreenUI(
                     title = R.string.settings_test_notification,
                     iconRes = R.drawable.notifications,
                     onClick = onTestNotificationClick,
-                    enabled = notificationsEnabled,
+                    enabled = notificationsEnabled == true,
                     iconContentDescription = R.string.cd_settings_test_notification,
                 )
             )

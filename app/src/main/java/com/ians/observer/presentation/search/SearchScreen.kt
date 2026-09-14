@@ -250,7 +250,15 @@ private fun SearchProviderSelector(
                     )
                 )
             },
-            trailingIcon = { Text("⌄") }
+            trailingIcon = {
+                Icon(
+                    modifier = Modifier
+                        .padding(end = 2.dp)
+                        .size(width = 12.dp, height = 7.dp),
+                    painter = painterResource(R.drawable.arrow_drop_down),
+                    contentDescription = null
+                )
+            }
         )
 
         DropdownMenu(

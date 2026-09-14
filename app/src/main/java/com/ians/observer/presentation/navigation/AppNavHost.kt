@@ -46,7 +46,7 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Saved.route,
+        startDestination = Screen.Feed.route,
         modifier = Modifier.padding(paddingValues),
         enterTransition = { navEnter() },
         exitTransition = { navExit() },
