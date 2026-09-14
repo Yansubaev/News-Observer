@@ -63,7 +63,7 @@ fun openArticleUrl(
                 context = context,
             )
         }
-    } catch (e: ActivityNotFoundException) {
+    } catch (_: ActivityNotFoundException) {
         openUriInBrowser(
             uri = uri,
             context = context,

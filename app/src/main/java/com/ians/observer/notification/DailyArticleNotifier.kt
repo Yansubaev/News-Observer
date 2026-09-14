@@ -90,7 +90,7 @@ class DailyArticleNotifier @Inject constructor(
             NotificationManagerCompat
                 .from(context)
                 .notify(NOTIFICATION_ID, notification)
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             return
         }
     }

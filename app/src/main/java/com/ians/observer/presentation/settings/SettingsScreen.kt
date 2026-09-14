@@ -206,7 +206,6 @@ fun MainSettingsScreen(
 
 @Composable
 fun FeedProviderSettingsScreen(
-    navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val selectedProviderId by viewModel.selectedFeedProvider.collectAsStateWithLifecycle()
@@ -224,7 +223,6 @@ fun FeedProviderSettingsScreen(
 
 @Composable
 fun SearchProviderSettingsScreen(
-    navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val enabledProviderIds by viewModel.enabledSearchProviderIds.collectAsStateWithLifecycle()

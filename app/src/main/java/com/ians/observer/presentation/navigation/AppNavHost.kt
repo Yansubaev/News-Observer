@@ -86,11 +86,11 @@ fun AppNavHost(
         }
 
         composable(SettingsScreen.FeedProviders.route) {
-            FeedProviderSettingsScreen(navController)
+            FeedProviderSettingsScreen()
         }
 
         composable(SettingsScreen.SearchProviders.route) {
-            SearchProviderSettingsScreen(navController)
+            SearchProviderSettingsScreen()
         }
 
         composable(SettingsScreen.Language.route) {

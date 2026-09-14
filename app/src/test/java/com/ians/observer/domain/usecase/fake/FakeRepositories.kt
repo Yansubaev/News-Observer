@@ -113,7 +113,7 @@ internal class FakeSettingsRepository(
     val language: NewsLanguage = NewsLanguage.EN,
     val feedProvider: ProviderId = ProviderId.NEWS_DATA,
     val searchProvider: ProviderId = ProviderId.NEWS_DATA,
-    val enabledSearchProviders: Set<ProviderId> = setOf(ProviderId.NEWS_DATA),
+    enabledSearchProviders: Set<ProviderId> = setOf(ProviderId.NEWS_DATA),
     var syncInterval: Long = 10 * 60 * 1_000L,
     var notificationsEnabled: Boolean = false,
     var notificationPermissionRequested: Boolean = false,

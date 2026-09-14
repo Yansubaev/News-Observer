@@ -1,6 +1,5 @@
 package com.ians.observer.data.repository
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -9,13 +8,11 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.ians.observer.data.local.SearchHistoryDataStore
 import com.ians.observer.domain.repository.SearchHistoryRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class SearchHistoryRepositoryImpl @Inject constructor(
-    @param:ApplicationContext private val context: Context,
     @param:SearchHistoryDataStore private val dataStore: DataStore<Preferences>
 ) : SearchHistoryRepository {
 

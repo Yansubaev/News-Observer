@@ -70,7 +70,6 @@ import com.ians.observer.presentation.helper.openUriInBrowser
 import com.ians.observer.presentation.helper.parseArticleUri
 import com.ians.observer.presentation.helper.shortenSnippet
 import com.ians.observer.presentation.mapper.attributionRes
-import com.ians.observer.presentation.mapper.titleRes
 import com.ians.observer.presentation.mapper.websiteUrlRes
 import kotlinx.coroutines.launch
 import java.text.DateFormat
